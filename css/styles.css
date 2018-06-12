@@ -244,7 +244,7 @@ nav h1 a {
 }
 .inside #map-container {
   background: blue none repeat scroll 0 0;
-  height: 400px;
+  height: 200px;
   position: relative;
   top: 0;
   width: 100%;
@@ -325,6 +325,7 @@ nav h1 a {
   color: #666;
 }
 
+/* medium viewport */
 @media screen and (min-width: 40em) and (max-width: 59.9em) {
   #restaurants-list {
     flex-flow: row wrap;
@@ -337,6 +338,7 @@ nav h1 a {
   }
 }
 
+/* large viewport */
 @media screen and (min-width: 60em) {
   #breadcrumb {
     width: calc(50% - 80px);
@@ -358,6 +360,7 @@ nav h1 a {
     position: fixed;
     right: 0;
     top: 80px;
+    border: 3px solid #ccc;
     width: 50%;
   }
   .inside #footer {
@@ -370,6 +373,7 @@ nav h1 a {
   }
 }
 
+/* extra large viewport */
 @media screen and (min-width: 80em) {
   body {
     background-color: #252831;
