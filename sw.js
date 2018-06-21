@@ -79,31 +79,3 @@ self.addEventListener('fetch', e => {
           })
   )
 });
-
-// self.addEventListener('fetch', e => {
-//   e.respondWith(
-//     caches.match(e.request)
-//     .then(response => {
-//       if(response) {
-//         console.log('Event request found.');
-//         return response;
-//       }
-//       return fetch(event.request).then(networkResponse => {
-//         if(networkResponse === 404) {
-//           console.log('Network Response is: ', networkResponse.status);
-//           return;
-//         }
-//         return caches.open(cacheName)
-//           .then(cache => {
-//             cache.put(event.request.url,  networkResponse.clone());
-//             console.log('Cached.');
-//             return networkResponse;
-//           })
-//       })
-//     })
-//     .catch(error => {
-//       console.log("Error in the fetch event: ", error);
-//       return;
-//     })
-//   )
-// });
