@@ -1,0 +1,32 @@
+{
+  "name": "restaurant-reviews-app",
+  "version": "2.0.0",
+  "description": "Reviews of restaurants using an API",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digilou/mws-restaurant-stage-1.git"
+  },
+  "keywords": [
+    "javascript",
+    "mobile",
+    "app"
+  ],
+  "author": "Amy Carney",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/digilou/mws-restaurant-stage-1/issues"
+  },
+  "homepage": "https://github.com/digilou/mws-restaurant-stage-1#readme",
+  "devDependencies": {
+    "browser-sync": "^2.24.5",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^5.0.0",
+    "gulp-eslint": "^5.0.0",
+    "gulp-jasmine-phantom": "^3.0.0",
+    "gulp-sass": "^4.0.1"
+  }
+}
