@@ -2,7 +2,7 @@
   "name": "restaurant-reviews-app",
   "version": "2.0.0",
   "description": "Reviews of restaurants using an API",
-  "main": "app.js",
+  "main": "dist/index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -28,62 +28,63 @@ gulp.task('default', ['scripts', 'scripts-dist', 'copy-html', 'copy-img', 'style
 
 gulp.task('styles', () => {
   gulp.src('sass/**/*.scss')
-  .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
-  .pipe(autoprefixer({
-    browsers: ['last 2 versions']
-  }))
-  .pipe(gulp.dest('./dist/css'));
+      .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
+      .pipe(autoprefixer({
+        browsers: ['last 2 versions']
+      }))
+      .pipe(gulp.dest('./dist/css'));
 });
 
 gulp.task('copy-html', () => {
   gulp.src('./index.html')
-  .pipe(gulp.dest('dist'))
+      .pipe(gulp.dest('dist'))
 });
 
 gulp.task('copy-img', () => {
   gulp.src('./img/*')
-  .pipe(imagemin(
-    {
-      progressive: true,
-      use: [pngquant()]
-    }
-  ))
-  .pipe(gulp.dest('dist/img'))
+      .pipe(imagemin([
+        {
+          progressive: true,
+          use: [pngquant()],
+          
+        }
+      ]))
+      .pipe(gulp.dest('dist/img'))
 });
 
 gulp.task('lint', () => {
   gulp.src('js/**/*.js')
-  .pipe(eslint())
-  .pipe(eslint.format())
-  .pipe(eslint.failAfterError())
-  .pipe(eslint.result(result => {
-    // Called for each ESLint result.
-    console.log(`ESLint result: ${result.filePath}`);
-    console.log(`# Messages: ${result.messages.length}`);
-    console.log(`# Warnings: ${result.warningCount}`);
-    console.log(`# Errors: ${result.errorCount}`);
-  }));
+      .pipe(eslint())
+      .pipe(eslint.format())
+      .pipe(eslint.failAfterError())
+      .pipe(eslint.result(result => {
+        // Called for each ESLint result.
+        console.log(`ESLint result: ${result.filePath}`);
+        console.log(`# Messages: ${result.messages.length}`);
+        console.log(`# Warnings: ${result.warningCount}`);
+        console.log(`# Errors: ${result.errorCount}`);
+      }));
 });
 
 gulp.task('scripts', () => {
   gulp.src('js/**/*.js')
-  .pipe(babel({
-    presets: ['env']
-  }))
-  .pipe(concat('all.js'))
-  .pipe(gulp.dest('dist/js'));
+      .pipe(babel({
+        presets: ['env']
+      }))
+      .pipe(concat('all.js'))
+      .pipe(gulp.dest('dist/js'));
 });
 
 gulp.task('scripts-dist', () => {
   gulp.src('js/**/*.js')
-  .pipe(sourcemaps.init())
-  .pipe(babel({
-    presets: ['env']
-  }))
-  .pipe(concat('all.js'))
-  .pipe(uglify())
-  .pipe(sourcemaps.write())
-  .pipe(gulp.dest('dist/js'));
+      .pipe(sourcemaps.init())
+      .pipe(babel({
+        presets: ['env']
+      }))
+      .pipe(concat('all.js'))
+      .pipe(uglify())
+      .pipe(sourcemaps.write())
+      .pipe(gulp.dest('dist/js'));
 });
 
 gulp.task('tests', () => {

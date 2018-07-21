@@ -3,16 +3,12 @@
 const cacheName = 'reviews-cache-v1',
       filesToCache = [
         '/',
-        '/index.html',
+        '/dist/index.html',
         '/restaurant.html',
         '/dist/css/styles.css',
         '/data/restaurants.json',
-        '/img/',
-        '/dist/js/all.js',
-        '/js/dbhelper.js',
-        '/js/register.js',
-        '/js/main.js',
-        '/js/restaurant_info.js'
+        '/dist/img/',
+        '/dist/js/all.js'
       ];
 
 // first install cache of application shell
@@ -48,6 +44,6 @@ self.addEventListener('fetch', e => {
     .then(response => {
       return response || fetch(e.request);
     })
-    .catch(() => caches.match('/index.html'))
+    .catch(() => caches.match('/dist/index.html'))
   )
 });
