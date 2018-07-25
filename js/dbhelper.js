@@ -18,6 +18,7 @@ class DBHelper {
     fetch(this.DATABASE_URL)
     .then(response => response.json)
     .then(function(restaurants){
+      console.log("Success!")
       callback(null, restaurants);
     })
     .catch((e, part) => {
