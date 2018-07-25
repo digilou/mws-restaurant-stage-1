@@ -13,7 +13,7 @@ pids
 build/Release
 
 # Dependency directories
-node_modules
+node_modules/
 jspm_packages/
 
 # Optional npm cache directory
@@ -28,3 +28,9 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
+
+# Mac custom attributes
+.DS_Store
+
+#VS Code
+.vscode/
