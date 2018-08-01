@@ -1,12 +1,11 @@
 // Build, activate, fetch cache
 
-const cacheName = 'reviews-cache-v1',
+const cacheName = 'reviews-cache-v2',
       filesToCache = [
         '/',
         '/index.html',
         '/restaurant.html',
         '/css/styles.css',
-        '/data/restaurants.json',
         '/img/',
         '/js/dbhelper.js',
         '/js/register.js',
