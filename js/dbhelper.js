@@ -27,11 +27,11 @@ class DBHelper {
   }
 
   /**
-   * Fetch all restaurants.
+   * Fetch and cache all restaurants.
    */
   static fetchRestaurants(callback) {
     fetch(this.DATABASE_URL)
-    .then(response => response.json)
+    .then(response => response.json())
     .then(restaurants => {
       this.IDB
       .then( db => {
@@ -169,7 +169,7 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (`/img/${restaurant.photograph}`);
+    return (`/img/${restaurant.id}.jpg`);
   }
 
   /**
@@ -179,7 +179,7 @@ class DBHelper {
     const marker = new google.maps.Marker({
       position: restaurant.latlng,
       title: restaurant.name,
-      url: DBHelper.urlForRestaurant(restaurant),
+      url: this.urlForRestaurant(restaurant),
       map: map,
       animation: google.maps.Animation.DROP}
     );
