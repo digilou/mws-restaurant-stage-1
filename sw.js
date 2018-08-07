@@ -56,9 +56,21 @@ self.addEventListener('fetch', e => {
   console.log("Fetching cache...", e);
   e.respondWith(
     caches.match(e.request)
-    .then(response => {
-      return response || fetch(e.request);
-    })
-    .catch(() => caches.match('/index.html'))
+          .then(response => {
+            if(response) return response;
+            return fetch(e.request)
+            .then(networkResponse => {
+              if(networkResponse === 404) return;
+              return caches.open(cacheName)
+                .then(cache => {
+                  cache.put(e.request.url, networkResponse.clone());
+                  return networkResponse;
+                })
+            })
+          })
+          .catch(error => {
+            console.log('Error in the fetch event: ', error);
+            return;
+          })
   )
 });
