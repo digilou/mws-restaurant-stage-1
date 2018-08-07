@@ -6,7 +6,6 @@ const cacheName = 'reviews-cache-v2',
         '/index.html',
         '/restaurant.html',
         '/css/styles.css',
-        '/data/restaurants.json',
         '/img/1.jpg',
         '/img/2.jpg',
         '/img/3.jpg',
@@ -18,6 +17,7 @@ const cacheName = 'reviews-cache-v2',
         '/img/9.jpg',
         '/img/10.jpg',
         '/js/dbhelper.js',
+        '/js/idb.js',
         '/js/register.js',
         '/js/main.js',
         '/js/restaurant_info.js'
@@ -28,15 +28,8 @@ self.addEventListener('install', e => {
   console.log("Installing service worker...", e);
   e.waitUntil(
     caches.open(cacheName)
-          .then(cache => {
-            return cache.addAll(filesToCache);
-          })
-          .then(() => {
-            return self.skipWaiting();
-          })
-          .catch(error => {
-            console.log('Cache failed.', error);
-          })
+    .then(cache => cache.addAll(filesToCache))
+    .then(() => self.skipWaiting())
   )
 });
 
@@ -44,21 +37,23 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   console.log("Activating service worker...", e);
   e.waitUntil(
-    caches.keys().then(keyList => {
+    caches.keys()
+    .then(keyList => {
       return Promise.all(
-        keyList.filter(key => {
-          return key.startsWith('reviews-') && key != cacheName;
-        }).map(keyList => {
-          return caches.delete(keyList);
-        })
-    )})
+        keyList.map(
+          key => {
+            if(key !== cacheName) return caches.delete(key);
+          }
+        )
+      )
+    })
   )
   return self.clients.claim();
 });
 
 // fetch cache, with network and generic fallbacks
 self.addEventListener('fetch', e => {
-  console.log("Fetching cache...")
+  console.log("Fetching cache...", e);
   e.respondWith(
     caches.match(e.request)
           .then(response => {
