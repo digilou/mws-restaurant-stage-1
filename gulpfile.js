@@ -54,7 +54,11 @@ gulp.task('copy-img', () => {
 
 gulp.task('lint', () => {
   gulp.src('js/**/*.js')
-      .pipe(eslint())
+      .pipe(eslint(
+        {
+          config: '.eslintrc'
+        }
+      ))
       .pipe(eslint.format())
       .pipe(eslint.failAfterError())
       .pipe(eslint.result(result => {
