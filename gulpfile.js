@@ -56,7 +56,7 @@ gulp.task('lint', () => {
   gulp.src('js/**/*.js')
       .pipe(eslint(
         {
-          config: '.eslintrc'
+          config: '.eslintrc.json'
         }
       ))
       .pipe(eslint.format())
