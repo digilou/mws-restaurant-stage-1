@@ -25,6 +25,7 @@ jspm_packages
 # Optional eslint cache
 .eslintcache
 .eslintrc
+.eslintrc.json
 
 # Output of 'npm pack'
 *.tgz
