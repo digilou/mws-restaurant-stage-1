@@ -12,9 +12,12 @@ pids
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 
+# Test
+tests
+
 # Dependency directories
-node_modules/
-jspm_packages/
+node_modules
+jspm_packages
 
 # Optional npm cache directory
 .npm
@@ -22,6 +25,7 @@ jspm_packages/
 # Optional eslint cache
 .eslintcache
 .eslintrc
+.eslintrc.json
 
 # Output of 'npm pack'
 *.tgz
