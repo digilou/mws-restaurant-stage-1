@@ -28,10 +28,15 @@ gulp.task('default', ['scripts', 'scripts-dist', 'copy-html', 'copy-img', 'style
 
 gulp.task('styles', () => {
   gulp.src('sass/**/*.scss')
-      .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
+      .pipe(sourcemaps.init())
+      .pipe(sass({
+        outputStyle: 'compressed'
+      })
+      .on('error', sass.logError))
       .pipe(autoprefixer({
         browsers: ['last 2 versions']
       }))
+      .pipe(sourcemaps.write())
       .pipe(gulp.dest('./dist/css'));
 });
 
@@ -42,13 +47,7 @@ gulp.task('copy-html', () => {
 
 gulp.task('copy-img', () => {
   gulp.src('./img/*')
-      .pipe(imagemin([
-        {
-          progressive: true,
-          use: [pngquant()],
-          
-        }
-      ]))
+ 
       .pipe(gulp.dest('dist/img'))
 });
 
@@ -106,3 +105,11 @@ gulp.task('dist', () => {
   'lint',
   'scripts-dist'
 });
+
+// .pipe(imagemin([
+//   {
+//     progressive: true,
+//     use: [pngquant()],
+    
+//   }
+// ]))
