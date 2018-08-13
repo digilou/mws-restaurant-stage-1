@@ -46,7 +46,7 @@ gulp.task('copy-html', () => {
 });
 
 gulp.task('copy-img', () => {
-  gulp.src('./img/*')
+  gulp.src('./img/**/*')
  
       .pipe(gulp.dest('dist/img'))
 });
@@ -102,8 +102,8 @@ gulp.task('dist', () => {
   'copy-html',
   'copy-img',
   'styles',
-  'lint',
-  'scripts-dist'
+  'scripts-dist',
+  'lint'
 });
 
 // .pipe(imagemin([
