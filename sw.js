@@ -1,6 +1,6 @@
 // Build, activate, fetch cache
 
-const cacheName = 'reviews-cache-v2',
+const cacheName = 'reviews-cache-v3',
       filesToCache = [
         '/',
         '/index.html',
