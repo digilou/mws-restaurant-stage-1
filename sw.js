@@ -1,10 +1,12 @@
-// Build, activate, fetch cache
+// Fetch, install, activate cache
 
-const cacheName = 'reviews-cache-v3',
+const version = 'v4',
+      staticCacheName = 'reviews-cache-' + version,
       filesToCache = [
         '/',
         '/index.html',
         '/restaurant.html',
+        '/offline.html',
         '/css/styles.css',
         '/img/1.jpg',
         '/img/2.jpg',
@@ -23,54 +25,56 @@ const cacheName = 'reviews-cache-v3',
         '/js/restaurant_info.js'
       ];
 
-// first install cache of application shell
-self.addEventListener('install', e => {
-  console.log("Installing service worker...", e);
-  e.waitUntil(
-    caches.open(cacheName)
-    .then(cache => cache.addAll(filesToCache))
-    .then(() => self.skipWaiting())
-  )
-});
-
-// activate cache, remove outdated caches
-self.addEventListener('activate', e => {
-  console.log("Activating service worker...", e);
-  e.waitUntil(
-    caches.keys()
-    .then(keyList => {
-      return Promise.all(
-        keyList.map(
-          key => {
-            if(key !== cacheName) return caches.delete(key);
-          }
-        )
-      )
-    })
-  )
-  return self.clients.claim();
-});
-
-// fetch cache, with network and generic fallbacks
-self.addEventListener('fetch', e => {
-  console.log("Fetching cache...", e);
-  e.respondWith(
-    caches.match(e.request)
+// fetch cache, with fallbacks
+addEventListener('fetch', fetchEvent => {
+  console.log("Fetching cache...", fetchEvent);
+  const request = fetchEvent.request;
+  fetchEvent.respondWith(
+    caches.match(request)
           .then(response => {
             if(response) return response;
-            return fetch(e.request)
+            return fetch(request)
             .then(networkResponse => {
               if(networkResponse === 404) return;
-              return caches.open(cacheName)
+              return caches.open(staticCacheName)
                 .then(cache => {
-                  cache.put(e.request.url, networkResponse.clone());
+                  cache.put(request.url, networkResponse.clone());
                   return networkResponse;
                 })
             })
-          })
-          .catch(error => {
-            console.log('Error in the fetch event: ', error);
-            return;
-          })
-  )
-});
+            .catch( error => {
+              console.log(error);
+              // fallback page
+              return caches.match('/offline.html');
+            }); // fetch catch
+          }) // end match
+  ) // end respondWith
+}); // end eventListener
+
+// first install cache of application shell
+addEventListener('install', installEvent => {
+  console.log("Installing service worker...", installEvent);
+  skipWaiting();
+  installEvent.waitUntil(
+    caches.open(staticCacheName)
+    .then(staticCache => staticCache.addAll(filesToCache))
+  ) // end waitUntil
+}); // end eventListener
+
+// activate cache, remove outdated caches
+addEventListener('activate', activateEvent => {
+  console.log("Activating service worker...", activateEvent);
+  activateEvent.waitUntil(
+    caches.keys()
+    .then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(
+          cacheName => {
+            if(cacheName !== staticCacheName) return caches.delete(cacheName);
+          }
+        ) // end map
+      ) // end Promise.all
+    }) // end keys
+    .then(() => clients.claim()) // clear for open tabs
+  ) // end waitUntil
+}); // end eventListener
