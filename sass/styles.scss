@@ -28,10 +28,13 @@ figcaption,
 figure, 
 footer, 
 header, 
-hgroup, 
+hgroup,
+input,
+label, 
 menu, 
 nav, 
-section {
+section,
+textarea {
 	display: block;
 }
 

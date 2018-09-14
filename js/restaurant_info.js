@@ -102,7 +102,7 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
 
   if (!reviews) {
     const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
+    noReviews.innerHTML = 'No reviews yet. Be the first!';
     container.appendChild(noReviews);
     return;
   }
