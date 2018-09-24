@@ -52,22 +52,29 @@
     </section>
     <!-- End reviews -->
     <!-- Add reviews -->
-    <form action="http://localhost:1337" method="POST">
-        <input type="hidden" id="restaurant-id" value="this.restaurantID">
-        <input type="hidden" id="date" value="this.Date">
+    <form action="js/restaurant_info.js" method="POST">
 
         <label for="name">Name</label>
         <input type="text" id="name" name="name" required>
 
-        <label for="rating">Rating</label>
-        <input type="range" list="tickmarks" id="rating" name="rating" required>
-        <datalist id="tickmarks">
-          <option value="1" label="1">
-          <option value="2" label="2">
-          <option value="3" label="3">
-          <option value="4" label="4">
-          <option value="5" label="5">
-        </datalist>
+        <fieldset>
+          <legend>Rating</legend>
+
+          <label for="star1">1-Star</label>
+          <input type="radio" id="star1" name="rating" required>
+
+          <label for="star2">2-Stars</label>
+          <input type="radio" id="star2" name="rating" required>
+
+          <label for="star3">3-Stars</label>
+          <input type="radio" id="star3" name="rating" required>
+
+          <label for="star4">4-Stars</label>
+          <input type="radio" id="star4" name="rating" required>
+
+          <label for="star5">5-Stars</label>
+          <input type="radio" id="star5" name="rating" required>
+        </fieldset>
 
         <label for="comments">What did you think?</label>
         <textarea name="comments" id="comments" cols="30" rows="10" required></textarea>
