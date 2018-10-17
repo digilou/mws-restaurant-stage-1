@@ -122,8 +122,15 @@ createReviewHTML = (review) => {
   name.innerHTML = review.name;
   li.appendChild(name);
 
-  const date = document.createElement('p');
-  date.innerHTML = review.date;
+  const date = document.createElement('p'),
+        created = newDate(review.createdAt),
+        dateOptions = {
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour12: false
+        };
+  date.innerHTML = created.toLocaleString('en-US', dateOptions);
   li.appendChild(date);
 
   const rating = document.createElement('p');
