@@ -239,9 +239,9 @@ class DBHelper {
   /**
    * Submit a review
    */
-  static addReview(formData, callback) {
+  static addReview(url, formData, callback) {
     // Attempt to POST review to server.
-    this.postReview(formData)
+    this.postReview(url, formData)
     .then( () => {
       callback(null, 'Review successful!');
     })
@@ -279,8 +279,8 @@ class DBHelper {
   /**
    * POST review in readable format
    */
-  static postReview(reviewData) {
-    return fetch(`${this.DATABASE_URL}/reviews`, {
+  static postReview(url, reviewData) {
+    return fetch(url, {
       body: JSON.stringify(reviewData),
       mode: 'cors',
       method: 'POST',
