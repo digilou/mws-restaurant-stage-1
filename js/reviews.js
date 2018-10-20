@@ -1,6 +1,6 @@
 const reviewForm = document.forms,
       userName = document.forms.namedItem('name'),
-      userRating = document.querySelectorAll('#review-radios input[type=radio]'),
+      userRating = document.querySelector('#review-radios input[type=radio]:checked'),
       userComment = document.forms.namedItem('comments'),
       reviewBtn = document.forms.namedItem('review-submit');
 
