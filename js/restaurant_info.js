@@ -123,7 +123,7 @@ createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p'),
-        created = newDate(review.createdAt),
+        created = new Date(review.createdAt),
         dateOptions = {
           year: 'numeric', 
           month: 'long', 
@@ -169,3 +169,11 @@ getParameterByName = (name, url) => {
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
+
+// Iterate through all radio buttons
+// Add a click event listener to the labels
+// Get value of checked radio
+// Array.prototype.forEach.call( (el, i) => {
+// 	let label = el.nextSibling.nextSibling;
+// 	label.addEventListener("click", () => userRating.value );
+// });

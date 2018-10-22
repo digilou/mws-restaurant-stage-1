@@ -14,7 +14,7 @@ class DBHelper {
   /**
    * open cache
   **/
-  static get IDB() {
+  static get openDb() {
     const dbPromise = idb.open('reviews-db', 2, (upgradeDB) => {
       // create object store
       switch (upgradeDB.oldVersion) {
@@ -50,13 +50,12 @@ class DBHelper {
     fetch(`${this.DATABASE_URL}/restaurants`)
     .then(response => response.json())
     .then(restaurants => {
-      this.IDB
-      .then( db => {
+      this.openDb.then( db => {
         const tx = db.transaction('restaurants', 'readwrite'),
               restaurantStore = tx.objectStore('restaurants');
-        restaurants.forEach( restaurant => {
-          restaurantStore.put(restaurant);
-        });
+        restaurants.forEach( 
+          restaurant => restaurantStore.put(restaurant)
+        );
         callback(null, restaurants);
         return tx.complete;
       });
@@ -67,37 +66,73 @@ class DBHelper {
     });
   }
 
+  /*
+   * Update review data on page
+  */
+  static fetchExistingReviews(id) {
+    this.openDb.then(db => {
+      if(!db) return;
+      fetch(`${this.DATABASE_URL}/reviews/?restaurant_id${id}`)
+      .then(response => {
+        if(response.ok) response.json()
+      })
+      .then(reviews => {
+        const tx = db.transaction('reviews', 'readwrite'),
+              reviewsStore = tx.objectStore('reviews');
+        reviews.forEach(
+          review => reviewsStore.put(review)
+        )})
+      return tx.complete;
+    })
+    .catch(err => console.log(err));
+  }
+
+  /**
+   * Get all reviews from database.
+   */
+  static getReviewsFromDB(id) {
+    return this.openDb.then(db => {
+                  return db.transaction('reviews')
+                           .objectStore('reviews')
+                           .index('restaurant')
+                           .getAll(parseInt(id, 10));
+               })
+               .catch( error => {
+                 console.log(`Error fetching restaurants: ${error}`);
+               });
+  }
+
   /**
    * Fetch all reviews by restaurant ID.
    */
-  static fetchReviews(id, callback) {
-    fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${id}`)
-    .then(response => {
-      if(response.ok) response.json()
-    })
-    .then(reviews => {
-      this.IDB
-      .then( db => {
-        const tx = db.transaction('reviews', 'readwrite'),
-              reviewStore = tx.objectStore('reviews');
-        reviews.forEach( review => {
-          reviewStore.put(review);
-        });
-        callback(null, reviews);
-        return tx.complete;
-      });
-    })
-    .catch((error) => {
-      console.log(`Request failed: ${error}`);
-      this.IDB
-      .then(db => {
-        const tx = db.transaction("reviews", "readonly");
-        const store = tx.objectStore("reviews");
-        reviewStore.getAll()
-        .then(reviewsIDB => callback(null, reviewsIDB))
-      })
-    });
-  }
+  // static fetchReviewsByRestaurantId(id, callback) {
+  //   fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${id}`)
+  //   .then(response => {
+  //     if(response.ok) response.json()
+  //   })
+  //   .then(reviews => {
+  //     this.openDb
+  //     .then( db => {
+  //       const tx = db.transaction('reviews', 'readwrite'),
+  //             reviewStore = tx.objectStore('reviews');
+  //       reviews.forEach( review => {
+  //         reviewStore.put(review);
+  //       });
+  //       callback(null, reviews);
+  //       return tx.complete;
+  //     });
+  //   })
+  //   .catch((error) => {
+  //     console.log(`Request failed: ${error}`);
+  //     this.openDb
+  //     .then(db => {
+  //       const tx = db.transaction("reviews", "readonly"),
+  //             reviewStore = tx.objectStore("reviews");
+  //       reviewStore.getAll()
+  //       .then(reviewsopenDb => callback(null, reviewsopenDb))
+  //     })
+  //   });
+  // }
 
 
   /**
@@ -117,6 +152,27 @@ class DBHelper {
         }
       }
     });
+  }
+
+  /**
+   * Fetch reviews by restaurant.
+   * Get from db if available, otherwise get from network.
+   */
+
+  static fetchReviewsById(id, callback) {
+    this.getReviewsFromDB(id)
+        .then(reviews => {
+          if (reviews.length > 0) {
+            console.log('fetching reviews from database');
+            callback(null, reviews);
+          } else {
+            console.log('fetching reviews form network');
+            fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${id}`)
+              .then(response => response.json())
+              .then(reviews => callback(null, reviews));
+          }
+        })
+        .catch((error => console.log(`Error fetching reviews: ${error}`)));
   }
 
   /**
@@ -234,86 +290,5 @@ class DBHelper {
       animation: google.maps.Animation.DROP}
     );
     return marker;
-  }
-
-  /**
-   * Submit a review
-   */
-  static addReview(url, formData, callback) {
-    // Attempt to POST review to server.
-    this.postReview(url, formData)
-    .then( () => {
-      callback(null, 'Review successful!');
-    })
-    .catch(error => {
-      // Fetch failed so add to queue to POST when online
-      this.addToReviewQueue(formData, (err, res) => {
-        if (error) {
-          callback(err, null, true);
-        } else {
-          callback(res, null);
-        }
-      });
-    });
-  }
-
-  /**
-   * Add to queue
-   */
-  static addToReviewQueue(formData, callback) {
-    this.IDB()
-    .then(db => {
-      const tx = db.transaction('reviewQueue', 'readwrite');
-      tx.objectStore('reviewQueue')
-        .put(formData)
-        .then( () => {
-          callback(null, `You might be offline. We'll post your review when you're back online.`);
-        });
-      return tx.complete;
-    })
-    .catch(error => {
-      callback(`${error}. It appears you're offline. Please try again later.`, null);
-    });
-  }
-
-  /**
-   * POST review in readable format
-   */
-  static postReview(url, reviewData) {
-    return fetch(url, {
-      body: JSON.stringify(reviewData),
-      mode: 'cors',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-    });
-  }
-
-  /**
-   * Attempt to post the pending reviews
-   */
-  static postNextReview(cursor) {
-    if (!cursor) return;
-    this.postReview(cursor.value);
-    cursor.delete();
-    return cursor.continue()
-    .then(postNextReview);
-  }
-
-  static postFromReviewQueue(callback) {
-    this.IDB()
-    .then(db => {
-      const tx = db.transaction('reviewQueue', 'readwrite'),
-            store = tx.objectStore('reviewQueue');
-      return store.openCursor();
-    })
-    .then(postNextReview)
-    .then( () => {
-      callback(null, 'Your review has been posted!');
-    })
-    .catch(error => {
-      callback(error, null)
-    });
   }
 }
