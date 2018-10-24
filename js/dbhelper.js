@@ -155,27 +155,6 @@ class DBHelper {
   }
 
   /**
-   * Fetch reviews by restaurant.
-   * Get from db if available, otherwise get from network.
-   */
-
-  static fetchReviewsById(id, callback) {
-    this.getReviewsFromDB(id)
-        .then(reviews => {
-          if (reviews.length > 0) {
-            console.log('fetching reviews from database');
-            callback(null, reviews);
-          } else {
-            console.log('fetching reviews form network');
-            fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${id}`)
-              .then(response => response.json())
-              .then(reviews => callback(null, reviews));
-          }
-        })
-        .catch((error => console.log(`Error fetching reviews: ${error}`)));
-  }
-
-  /**
    * Fetch restaurants by a cuisine type with proper error handling.
    */
   static fetchRestaurantByCuisine(cuisine, callback) {
@@ -290,5 +269,22 @@ class DBHelper {
       animation: google.maps.Animation.DROP}
     );
     return marker;
+  }
+
+  /**
+   * Fetch reviews by restaurant id.
+   * Check network && IDB.
+   */
+
+  static fetchReviewsByRestaurantId(restaurant_id) {
+    return fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${restaurant_id}`)
+    .then(response => {
+      response.ok ? response.json(): Promise.reject("Reviews couldn't be retrieved from the network."); // check network
+    })
+    .then(reviews => reviews) // fetch reviews from network
+    .catch(err => {
+      console.log(err);
+      return null;
+    });
   }
 }
