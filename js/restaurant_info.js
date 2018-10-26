@@ -42,6 +42,14 @@ fetchRestaurantFromURL = (callback) => {
       fillRestaurantHTML();
       callback(null, restaurant);
     });
+    // DBHelper.fetchReviewsByRestaurantId(id, (error, reviews) => {
+    //   self.reviews = reviews;
+    //   if(!reviews) {
+    //     console.error(error);
+    //   }
+    //   fillReviewsHTML();
+    //   callback(null, reviews);
+    // });
   }
 };
 
@@ -68,8 +76,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  DBHelper.fetchReviewsByRestaurantId(restaurant.id)
-          .then(fillReviewsHTML);
+  DBHelper.fetchReviewsByRestaurantId(restaurant.id, fillReviewsHTML());
 };
 
 /**
