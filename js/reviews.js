@@ -1,21 +1,5 @@
 /**
- * Get a parameter by name from page URL.
- */
-const getParameterByName = (name, url) => {
-  if (!url)
-    url = window.location.href;
-  name = name.replace(/[\[\]]/g, '\\$&');
-  const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
-    results = regex.exec(url);
-  if (!results)
-    return null;
-  if (!results[2])
-    return '';
-  return decodeURIComponent(results[2].replace(/\+/g, ' '));
-};
-
-/**
- * Grab input data, put in IDB, post to page
+ * Grab input data, put in server & IDB, post to page
 **/
 function addReview(event) {
   // Prevent default submission behavior
@@ -30,45 +14,38 @@ function addReview(event) {
    // Construct them into a `review` object
 
   const reviewData = {
-    "restaurant_id": window.getParameterByName('id'),
-    "name": userName,
-    "rating": userRating,
-    "comments": userComment,
-    "createdAt": new Date(reviewForm.createdAt),
-    "updatedAt": new Date(reviewForm.updatedAt)
+    restaurant_id: window.getParameterByName('id'),
+    name: userName,
+    rating: userRating,
+    comments: userComment
   }
 
-  // put it into IDB (in either order; these could be two separate steps)
-  pushDataIntoIDB(reviewData);
-  
   // POST the review to the server
-  postToServer(reviewData);
+  stringifyReview(reviewData);
+
+  // put it into IDB
+  pushDataIntoIDB(reviewData);
+
+  // post to the page
+  fillReviewsHTML(reviewData);
 
   // Clear/reset the form fields
-  document.forms.reset();
-  
-  // Reset URL back to the restaurant id page
-  urlForRestaurant(reviewData.restaurant_id);
+  reviewForm.reset();
 }
 
 function pushDataIntoIDB(data) {
   DBHelper.openDb.then(db => {
-    const tx = db.transaction('reviews', 'readwrite'),
-          reviewsStore = tx.objectStore('reviews');
+    const reviewsStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
     return reviewsStore.openCursor();
   })
-  .then(
-    DBHelper.stringifyReview(window.getParameterByName('id'), data)
-  )
+  .then()
 }
 
 function postToServer(data) {
-  DBHelper.openDb.then(db => {
-    const tx = db.transaction('reviews', 'readyonly'),
-          reviewsStore = tx.objectStore('reviews');
-    
-    return reviewsStore.openCursor();
-  });
+  fetch(`${DBHelper.DATABASE_URL}/reviews`)
+  .then(response => response.json())
+  .then(stringifyReview(window.getParameterByName('id'), data))
+  .catch(err => console.log(err));
 }
 
 function stringifyReview(data) {
@@ -77,27 +54,25 @@ function stringifyReview(data) {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
+    credentials: 'same-origin',
+    mode: 'no-cors'
   })
-  .then(response => response.json()) // parse response to JSON
+  .then(response => {
+    if(response.ok) return response.json()
+  }) // parse response to JSON
   .catch(err => console.log(err));
 }
 
 function appendFormData(data) {
   // fetch data from reviews server
-  fetch(`${DBHelper.DATABASE_URL}/reviews`)
-  .then(response => response.json())
-  .then(createReviewsHTML(data))
-  .catch(err => console.log(err));
+  // get review from IDB
+  DBHelper.openDb.then(db => {
+    const reviewsStore = db.transaction('reviews', 'readonly').objectStore('reviews');
+    
+    return reviewsStore.openCursor();
+  });
 }
-
-// Iterate through all radio buttons
-// Add a click event listener to the labels
-// Get value of checked radio
-// Array.prototype.forEach.call( (el, i) => {
-// 	let label = el.nextSibling.nextSibling;
-// 	label.addEventListener("click", () => userRating.value );
-// });
 
 /****** Queue Reviews **********/
 

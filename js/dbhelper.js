@@ -32,7 +32,7 @@ class DBHelper {
           });
           // create index by restaurant and date posted
           reviewStore.createIndex('restaurant', 'restaurant_id');
-          reviewStore.createIndex('by-date', 'date');
+          // reviewStore.createIndex('by-date', 'date');
         case 2:
           // create store for reviews created offline
           upgradeDB.createObjectStore('reviewQueue', {
@@ -51,13 +51,12 @@ class DBHelper {
     .then(response => response.json())
     .then(restaurants => {
       this.openDb.then( db => {
-        const tx = db.transaction('restaurants', 'readwrite'),
-              restaurantStore = tx.objectStore('restaurants');
+        const restaurantStore = db.transaction('restaurants', 'readwrite').objectStore('restaurants');
         restaurants.forEach( 
           restaurant => restaurantStore.put(restaurant)
         );
         callback(null, restaurants);
-        return tx.complete;
+        return restaurantStore.complete;
       });
     })
     .catch((error) => {
@@ -245,8 +244,7 @@ static fetchRestaurantById(id, callback) {
 
   // static checkIDB(classHelper, storeName, readType) {
   //   classHelper.openDb.then(db => {
-  //     const tx = db.transaction(storeName, readType),
-  //           store = tx.objectStore(storeName);
+  //     const store = db.transaction(storeName, readType).objectStore(storeName);
   //     store.getAll();
   //   })
   // }
@@ -265,38 +263,25 @@ static fetchRestaurantById(id, callback) {
 
 
   /**
-   * Fetch reviews by restaurant id.
-   * Check IDB (offline-first), then network (sails server)
+   * Fetch reviews by restaurant ID
    */
-
   static fetchReviewsByRestaurantId(restaurant_id, callback) {
-    return fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${restaurant_id}`)
-          .then(response => {
-            response.ok ? response.json() : Promise.reject("Reviews couldn't be retrieved from the network."); // check network
-          })
-          .then(reviews => reviews); // fetch reviews from network
-
-    // open IDB
-    // this.openDb.then( db => {
-    //   // check IDB for reviews
-    //   const tx = db.transaction('reviews', 'readwrite'),
-    //         reviewsStore = tx.objectStore('reviews');
-    //   reviewsStore.getAll()
-    //   .then(reviews => {
-    //     // return reviews if there are any in IDB
-    //     if(reviews && reviews.length > 0) {
-    //       callback(null, reviews);
-    //       return tx.complete;
-    //     } else {
-    //       // otherwise check for reviews on the Sails server
-    //       return fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${restaurant_id}`)
-    //       .then(response => {
-    //         response.ok ? response.json() : Promise.reject("Reviews couldn't be retrieved from the network."); // check network
-    //       })
-    //       .then(reviews => reviews); // fetch reviews from network
-    //     }
-    //   })
-    //   .catch(err => callback(err, null))
-    // })
+    // check network for reviews endpoint
+    fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${restaurant_id}`)
+    .then(response => {
+      if (response.ok) return response.json()
+      .then(reviews => {
+        // put those reviews into IDB
+        this.openDb.then( db => {
+          const reviewsStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
+          reviews.forEach( 
+            review => reviewsStore.put(review)
+          );
+        if(reviews && reviews.length > 0) callback(null, reviews);
+        return reviewsStore.complete;
+        })
+      })
+    });
   }
+
 }

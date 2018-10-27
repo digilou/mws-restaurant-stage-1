@@ -42,16 +42,17 @@ fetchRestaurantFromURL = (callback) => {
       fillRestaurantHTML();
       callback(null, restaurant);
     });
-    // DBHelper.fetchReviewsByRestaurantId(id, (error, reviews) => {
-    //   self.reviews = reviews;
-    //   if(!reviews) {
-    //     console.error(error);
-    //   }
-    //   fillReviewsHTML();
-    //   callback(null, reviews);
-    // });
+    DBHelper.fetchReviewsByRestaurantId(id, (error, reviews) => {
+      if(!reviews) {
+        console.error(error);
+        return;
+      }
+      console.log("Fetched reviews: ", reviews.length)
+      fillReviewsHTML(reviews);
+      callback(null, reviews);
+    });
   }
-};
+}
 
 /**
  * Create restaurant HTML and add it to the webpage
@@ -75,8 +76,6 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
-  // fill reviews
-  DBHelper.fetchReviewsByRestaurantId(restaurant.id, fillReviewsHTML());
 };
 
 /**
@@ -155,7 +154,8 @@ createReviewHTML = (review) => {
 /**
  * Add restaurant name to the breadcrumb navigation menu
  */
-fillBreadcrumb = (restaurant=self.restaurant) => {
+fillBreadcrumb = (restaurant) => {
+  restaurant = self.restaurant;
   const breadcrumb = document.getElementById('breadcrumb');
   const li = document.createElement('li');
   li.innerHTML = restaurant.name;
@@ -177,11 +177,3 @@ getParameterByName = (name, url) => {
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
-
-// Iterate through all radio buttons
-// Add a click event listener to the labels
-// Get value of checked radio
-// Array.prototype.forEach.call( (el, i) => {
-// 	let label = el.nextSibling.nextSibling;
-// 	label.addEventListener("click", () => userRating.value );
-// });
