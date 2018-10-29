@@ -201,43 +201,6 @@ static fetchRestaurantById(id, callback) {
     return marker;
   }
 
-
-  /*
-   * Update review data on page
-  */
-//  static fetchExistingReviews(id) {
-//   this.openDb.then(db => {
-//     if(!db) return;
-//     fetch(`${this.DATABASE_URL}/reviews/?restaurant_id${id}`)
-//     .then(response => {
-//       if(response.ok) response.json()
-//     })
-//     .then(reviews => {
-//       const tx = db.transaction('reviews', 'readwrite'),
-//             reviewsStore = tx.objectStore('reviews');
-//       reviews.forEach(
-//         review => reviewsStore.put(review)
-//       )})
-//     return tx.complete;
-//   })
-//   .catch(err => console.log(err));
-// }
-
-/**
- * Get all reviews from database.
- */
-// static getReviewsFromDB(id) {
-//   return this.openDb.then(db => {
-//                 return db.transaction('reviews')
-//                          .objectStore('reviews')
-//                          .index('restaurant')
-//                          .getAll(parseInt(id, 10));
-//              })
-//              .catch( error => {
-//                console.log(`Error fetching restaurants: ${error}`);
-//              });
-// }
-
   /**
    * Open IDB
    */

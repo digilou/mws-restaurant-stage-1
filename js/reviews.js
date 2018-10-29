@@ -14,41 +14,44 @@ function addReview(event) {
    // Construct them into a `review` object
 
   const reviewData = {
-    restaurant_id: window.getParameterByName('id'),
+    restaurant_id: Number(window.getParameterByName('id')),
     name: userName,
-    rating: userRating,
-    comments: userComment
+    rating: Number(userRating),
+    comments: userComment,
+    createdAt: Number(new Date()),
+    updatedAt: Number(new Date())
   }
 
+  // push data to IDB review-queue
+
+
   // POST the review to the server
-  stringifyReview(reviewData);
+  postToServer(reviewData);
 
   // put it into IDB
-  pushDataIntoIDB(reviewData);
-
-  // post to the page
-  fillReviewsHTML(reviewData);
+  storeInIDB(reviewData);
 
   // Clear/reset the form fields
   reviewForm.reset();
 }
 
-function pushDataIntoIDB(data) {
-  DBHelper.openDb.then(db => {
-    const reviewsStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
-    return reviewsStore.openCursor();
-  })
-  .then()
-}
-
-function postToServer(data) {
+function storeInIDB(callback) {
   fetch(`${DBHelper.DATABASE_URL}/reviews`)
-  .then(response => response.json())
-  .then(stringifyReview(window.getParameterByName('id'), data))
+  .then(response => response)
+  .then(reviews => {
+      DBHelper.openDb.then( db => {
+        const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
+        reviews.forEach(
+          review => reviewStore.put(review)
+        );
+        callback(null, reviews);
+        return reviewStore.complete;
+      });
+  })
   .catch(err => console.log(err));
 }
 
-function stringifyReview(data) {
+function postToServer(data) {
   return fetch(`${DBHelper.DATABASE_URL}/reviews`, {
     method: 'POST',
     headers: {
@@ -62,16 +65,6 @@ function stringifyReview(data) {
     if(response.ok) return response.json()
   }) // parse response to JSON
   .catch(err => console.log(err));
-}
-
-function appendFormData(data) {
-  // fetch data from reviews server
-  // get review from IDB
-  DBHelper.openDb.then(db => {
-    const reviewsStore = db.transaction('reviews', 'readonly').objectStore('reviews');
-    
-    return reviewsStore.openCursor();
-  });
 }
 
 /****** Queue Reviews **********/
