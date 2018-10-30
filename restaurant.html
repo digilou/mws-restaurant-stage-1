@@ -4,10 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#333333">
   <!-- Normalize.css for better cross-browser consistency -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" type="text/css" />
   <!-- Main CSS file -->
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="/manifest.json">
   
   <title>Restaurant Info</title>
 </head>
@@ -46,9 +48,78 @@
     <!-- end restaurant -->
     <!-- Beginning reviews -->
     <section id="reviews-container">
-      <ul id="reviews-list"></ul>
+      <ul id="reviews-list">
+        <!-- placeholder for generated list -->
+      </ul>
     </section>
     <!-- End reviews -->
+    <!-- Add reviews -->
+    <form id="review-form" onsubmit="addReview(event)">
+
+      <label for="name">Your Name</label>
+      <input type="text" id="name" name="name" placeholder="First Last" autocapitalize="words" autocomplete="on" pattern="[A-Z][A-Za-z' -]+" minlength="3" maxlength="50" required>
+
+      <fieldset id="review-radios">
+        <legend>How would you rate us?</legend>
+
+        <input class="visuallyhidden" value="0" id="star0" type="radio" name="rating" checked>
+        <label for="star0">
+          <span class="visuallyhidden">0 Stars</span>
+          <svg viewBox="0 0 512 512">
+            <g stroke-width="70" stroke-linecap="square">
+              <path d="M91.5,442.5 L409.366489,124.633512"></path>
+              <path d="M90.9861965,124.986197 L409.184248,443.184248"></path>
+            </g>
+          </svg>
+        </label>
+
+        <input class="visuallyhidden" type="radio" id="star1" name="rating" value="1" required>
+        <label for="star1">
+          <span class="visuallyhidden">1 Star</span>
+          <svg viewBox="0 0 512 512">
+            <path d="M512 198.525l-176.89-25.704-79.11-160.291-79.108 160.291-176.892 25.704 128 124.769-30.216 176.176 158.216-83.179 158.216 83.179-30.217-176.176 128.001-124.769z"></path>
+          </svg>
+        </label>
+
+        <input class="visuallyhidden" type="radio" id="star2" name="rating" value="2" required>
+        <label for="star2">
+          <span class="visuallyhidden">2 Star</span>
+          <svg viewBox="0 0 512 512">
+            <path d="M512 198.525l-176.89-25.704-79.11-160.291-79.108 160.291-176.892 25.704 128 124.769-30.216 176.176 158.216-83.179 158.216 83.179-30.217-176.176 128.001-124.769z"></path>
+          </svg>
+        </label>
+
+        <input class="visuallyhidden" type="radio" id="star3" name="rating" value="3" required>
+        <label for="star3">
+          <span class="visuallyhidden">3 Star</span>
+          <svg viewBox="0 0 512 512">
+            <path d="M512 198.525l-176.89-25.704-79.11-160.291-79.108 160.291-176.892 25.704 128 124.769-30.216 176.176 158.216-83.179 158.216 83.179-30.217-176.176 128.001-124.769z"></path>
+          </svg>
+        </label>
+
+        <input class="visuallyhidden" type="radio" id="star4" name="rating" value="4" required>
+        <label for="star4">
+          <span class="visuallyhidden">4 Star</span>
+          <svg viewBox="0 0 512 512">
+            <path d="M512 198.525l-176.89-25.704-79.11-160.291-79.108 160.291-176.892 25.704 128 124.769-30.216 176.176 158.216-83.179 158.216 83.179-30.217-176.176 128.001-124.769z"></path>
+          </svg>
+        </label>
+
+        <input class="visuallyhidden" type="radio" id="star5" name="rating" value="5" required>
+        <label for="star5">
+          <span class="visuallyhidden">5 Star</span>
+          <svg viewBox="0 0 512 512">
+            <path d="M512 198.525l-176.89-25.704-79.11-160.291-79.108 160.291-176.892 25.704 128 124.769-30.216 176.176 158.216-83.179 158.216 83.179-30.217-176.176 128.001-124.769z"></path>
+          </svg>
+        </label>
+        
+      </fieldset>
+
+      <label for="comments">What did you think?</label>
+      <textarea name="comments" id="comments" placeholder="So long, and thanks for all the fish." cols="35" rows="5" minlength="2" maxlength="300" autocapitalize="sentences" wrap="hard" spellcheck required></textarea>
+
+      <button id="review-submit" type="submit">Add Review</button>
+    </form>
   </main>
   <!-- End main -->
 
@@ -66,6 +137,9 @@
   <script src="js/dbhelper.js"></script>
   <!-- Main javascript file -->
   <script src="js/restaurant_info.js"></script>
+  <!-- Reviews data handler -->
+  <script src="js/reviews.js"></script>
+  
   <!-- Google Maps -->
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQRGhtax0u-RPTIxs_jghnucw9sJ-8Acw&libraries=places&callback=initMap"></script>
   <!-- End scripts -->

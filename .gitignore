@@ -36,5 +36,8 @@ jspm_packages
 # Mac custom attributes
 .DS_Store
 
-#VS Code
+# VS Code
 .vscode/
+
+# Notes
+*.txt

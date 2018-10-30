@@ -37,7 +37,7 @@ gulp.task('styles', () => {
         browsers: ['last 2 versions']
       }))
       .pipe(sourcemaps.write())
-      .pipe(gulp.dest('./dist/css'));
+      .pipe(gulp.dest('./css'));
 });
 
 gulp.task('copy-html', () => {

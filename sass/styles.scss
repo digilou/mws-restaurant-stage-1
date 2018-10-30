@@ -1,5 +1,11 @@
 /* Variables */
-$font-family-base: Arial, Helvetica, sans-serif;$font-size-base: 1rem;
+$font-family-base: Arial, Helvetica, sans-serif;
+$font-size-base: 1rem;
+$yellow: goldenrod;
+$blue: #036;
+$gray: #999;
+$lightgray: #ff2d21;
+$red: red;
 
 /* Default base, layout, modules, state */
 
@@ -28,10 +34,13 @@ figcaption,
 figure, 
 footer, 
 header, 
-hgroup, 
+hgroup,
+input,
+label, 
 menu, 
 nav, 
-section {
+section,
+textarea {
 	display: block;
 }
 
@@ -252,7 +261,7 @@ nav h1 a {
   position: relative;
 }
 #restaurant-name {
-  color: #f18200;
+  color: #252831;
   font-family: $font-family-base;
   font-size: $font-size-base;
   font-weight: 200;
@@ -284,10 +293,9 @@ nav h1 a {
   border-bottom: 1px solid #d9d9d9;
   border-top: 1px solid #fff;
   padding: 40px 10px 30px;
-  width: 97%;
 }
 #reviews-container h2 {
-  color: #f58500;
+  color: #252831;
   font-size: $font-size-base*1.75;
   font-weight: 300;
   letter-spacing: -1px;
@@ -313,6 +321,105 @@ nav h1 a {
 }
 #restaurant-hours td {
   color: #666;
+}
+
+/* reviews form */
+.visuallyhidden {
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
+#review-form {
+  margin: 0;
+  padding: .25em
+}
+
+#review-form #name,
+#review-radios,
+#review-form #comments {
+  margin: 1em 0;
+  padding: .3em;
+  border-radius: .2em;
+  width: 93%;
+}
+
+#review-form #name {
+  &:focus,
+  &:hover {
+    border: 2px solid orange;
+  }
+}
+
+#review-form label,
+#review-form input,
+#review-form textarea,
+#review-form button {
+  display: block;
+}
+
+#review-form svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  stroke: currentColor;
+}
+#review-radios label {
+  display: block;
+  float: left;
+  font-size: 2em;
+  height: 1em;
+  margin-right: .4em;
+  color: $yellow;
+  border-bottom: 2px solid transparent;
+}
+
+#review-radios input {
+  &:checked ~ label {
+    color: $gray;
+  }
+}
+
+#review-radios input { 
+  &:checked + label {
+    color: $yellow;
+    border-bottom-color: $yellow;
+  }
+}
+#review-radios input {
+  &:focus + label {
+    border-bottom-style: dotted;
+  }
+}
+#review-radios {
+  &:hover input + label {
+    color: $yellow;
+  }
+}
+#review-radios input:hover ~ label,
+#review-radios input:focus ~ label,
+#review-radios input[id="star0"] + label {
+  color: $gray;
+}
+#review-radios input:hover + label,
+#review-radios input:focus + label {
+  color: $yellow;
+}
+#review-radios input[id="star0"]:hover + label,
+#review-radios input[id="star0"]:focus + label {
+  color: $red;
+}
+#review-radios input[id="star0"]:checked + label {
+  color: $lightgray;
+}
+
+#review-submit {
+  background-color: orange;
+  color: black;
+  width: 100%;
+  padding: .8em;
 }
 
 /* medium viewport */
