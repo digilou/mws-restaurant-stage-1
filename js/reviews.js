@@ -25,29 +25,41 @@ function addReview(event) {
   // push data to IDB review-queue
 
 
-  // POST the review to the server
+  // POST the review to the server, which then puts in IDB
   postToServer(reviewData);
 
-  // put it into IDB
-  storeInIDB(reviewData);
 
   // Clear/reset the form fields
   reviewForm.reset();
 }
 
+function postIDBtoPage() {
+  DBHelper.openDb.then( db => {
+    const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
+    db.get(reviewStore);
+    return reviewStore.complete;
+  })
+}
+
 function storeInIDB(callback) {
+  // look at server reviews
   fetch(`${DBHelper.DATABASE_URL}/reviews`)
   .then(response => response)
   .then(reviews => {
-      DBHelper.openDb.then( db => {
-        const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
-        reviews.forEach(
-          review => reviewStore.put(review)
-        );
-        callback(null, reviews);
-        return reviewStore.complete;
-      });
+    // Get database object
+    // Open transaction on database
+    // Open object store on transaction
+    // Perform operation on object store
+    DBHelper.openDb.then( db => {
+      const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
+      reviews.forEach(
+        review => reviewStore.put(review)
+      );
+      callback(null, reviews);
+      return reviewStore.complete;
+    });
   })
+  .then(() => console.log('Reviews updated in IDB!'))
   .catch(err => console.log(err));
 }
 
@@ -59,11 +71,12 @@ function postToServer(data) {
     },
     body: JSON.stringify(data),
     credentials: 'same-origin',
-    mode: 'no-cors'
+    // mode: 'no-cors'
   })
   .then(response => {
     if(response.ok) return response.json()
   }) // parse response to JSON
+  .then(() => storeInIDB(data))
   .catch(err => console.log(err));
 }
 
