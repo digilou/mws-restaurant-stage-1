@@ -22,29 +22,21 @@ function addReview(event) {
     updatedAt: Number(new Date())
   }
 
-  // push data to IDB review-queue
-
-
   // POST the review to the server, which then puts in IDB
   postToServer(reviewData);
 
+  // Refresh page (in a hacky sort of way) to re-populate reviews
+  window.navigator.onLine ? window.location.reload(true) : window.location.reload(false);
 
   // Clear/reset the form fields
-  reviewForm.reset();
+  // reviewForm.reset();
 }
 
-function postIDBtoPage() {
-  DBHelper.openDb.then( db => {
-    const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
-    db.get(reviewStore);
-    return reviewStore.complete;
-  })
-}
 
-function storeInIDB(callback) {
+function storeInIDB(serverData) {
   // look at server reviews
-  fetch(`${DBHelper.DATABASE_URL}/reviews`)
-  .then(response => response)
+  fetch(`${DBHelper.DATABASE_URL}/reviews/?restaurant_id=${self.restaurant.id}`)
+  .then(response => response.json())
   .then(reviews => {
     // Get database object
     // Open transaction on database
@@ -55,11 +47,10 @@ function storeInIDB(callback) {
       reviews.forEach(
         review => reviewStore.put(review)
       );
-      callback(null, reviews);
       return reviewStore.complete;
     });
   })
-  .then(() => console.log('Reviews updated in IDB!'))
+  .then(() => console.log('Reviews updated in IDB!' + serverData))
   .catch(err => console.log(err));
 }
 
