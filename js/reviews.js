@@ -25,11 +25,11 @@ function addReview(event) {
   // POST the review to the server, which then puts in IDB
   postToServer(reviewData);
 
-  // add to page
-  fillReviewsHTML();
+  // Refresh page (in a hacky sort of way) to re-populate reviews
+  window.navigator.onLine ? window.location.reload(true) : window.location.reload(false);
 
   // Clear/reset the form fields
-  reviewForm.reset();
+  // reviewForm.reset();
 }
 
 
