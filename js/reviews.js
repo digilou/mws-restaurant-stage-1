@@ -35,16 +35,16 @@ function addReview(event) {
 
 function postIDBtoPage() {
   DBHelper.openDb.then( db => {
-    const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
+    const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews').index('restaurant_id');
     db.get(reviewStore);
     return reviewStore.complete;
   })
 }
 
-function storeInIDB(callback) {
+function storeInIDB(serverData, callback) {
   // look at server reviews
   fetch(`${DBHelper.DATABASE_URL}/reviews`)
-  .then(response => response)
+  .then(response => response.json())
   .then(reviews => {
     // Get database object
     // Open transaction on database
