@@ -22,8 +22,14 @@ function addReview(event) {
     updatedAt: Number(new Date())
   }
 
-  // POST the review to the server, which then puts in IDB
-  postToServer(reviewData);
+  // POST the review to the server if online, which then puts in IDB
+  // Otherwise, post to reviews queue if offline, then post to server when online
+  if(window.navigator.onLine) {
+    postToServer(reviewData);
+  } else {
+    addReviewToQueue()
+    .then(postToServer(reviewData));
+  }
 
   // Refresh page (in a hacky sort of way) to re-populate reviews
   window.navigator.onLine ? window.location.reload(true) : window.location.reload(false);
@@ -32,6 +38,50 @@ function addReview(event) {
   // reviewForm.reset();
 }
 
+
+// STEPS
+// 1. Check if user is online
+// 2. If offline, capture data in IDB reviewsQueue
+// 3. Notify user they are offline
+// 4. Else, postToServer()
+// 5. When back online, postToServer
+// 6. And copy reviewQueue data to IDB reviews
+// 7. Clear reviewQueue data
+// 8. Refresh page
+
+/**
+ * Add to queue
+ */
+function addReviewToQueue(data) {
+  DBHelper.openDb.then(db => {
+    const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
+    return queueStore.openCursor();
+  })
+  .then(DBHelper.postNextReview());
+}
+
+/**
+ * Attempt to post the pending reviews
+ */
+function postNextReview(cursor) {
+  if (!cursor) return;
+  postToServer(cursor.value);
+  cursor.delete();
+  return cursor.continue()
+                .then(postFromReviewQueue());
+}
+
+function postFromReviewQueue() {
+  DBHelper.openDb.then(db => {
+    const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
+    return queueStore.openCursor();
+  })
+  .then(DBHelper.postNextReview());
+}
+
+/*
+ * Store server data into IDB
+ */
 
 function storeInIDB(serverData) {
   // look at server reviews
@@ -45,7 +95,7 @@ function storeInIDB(serverData) {
     DBHelper.openDb.then( db => {
       const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
       reviews.forEach(
-        review => reviewStore.put(review)
+        review => reviewStore.openCursor(review)
       );
       return reviewStore.complete;
     });
@@ -53,6 +103,10 @@ function storeInIDB(serverData) {
   .then(() => console.log('Reviews updated in IDB!' + serverData))
   .catch(err => console.log(err));
 }
+
+/*
+ * Put object (data values) from form onto server.
+ */
 
 function postToServer(data) {
   return fetch(`${DBHelper.DATABASE_URL}/reviews`, {
@@ -70,49 +124,3 @@ function postToServer(data) {
   .then(() => storeInIDB(data))
   .catch(err => console.log(err));
 }
-
-/****** Queue Reviews **********/
-
-  /**
-   * Add to queue
-   */
-  function addReviewToQueue(data, callback) {
-    DBHelper.openDb.then(db => {
-      const tx = db.transaction('reviewQueue', 'readwrite'),
-            queueStore = tx.objectStore('reviewQueue');
-      return queueStore.openCursor();
-    })
-    .then(DBHelper.postNextReview())
-    .then(() => {
-      callback(null, `Connection reinstated. Your review has been posted!`);
-    })
-    .catch(error => {
-      callback(`${error}. It appears you're offline. Please try again later.`, null);
-    });
-  }
-
-  /**
-   * Attempt to post the pending reviews
-   */
-  function postNextReview(cursor) {
-    if (!cursor) return;
-    DBHelper.stringifyReview(cursor.value);
-    cursor.delete();
-    return cursor.continue()
-                 .then(DBHelper.postFromReviewQueue());
-  }
-
-  function postFromReviewQueue(callback) {
-    DBHelper.openDb.then(db => {
-      const tx = db.transaction('reviewQueue', 'readwrite'),
-            store = tx.objectStore('reviewQueue');
-      return store.openCursor();
-    })
-    .then(DBHelper.postNextReview())
-    .then( () => {
-      callback(null, 'Your review has been posted!');
-    })
-    .catch(error => {
-      callback(error, null)
-    });
-  }
