@@ -1,3 +1,4 @@
+const reviewForm = document.forms[0];
 /**
  * Grab input data, put in server & IDB, post to page
 **/
@@ -6,15 +7,17 @@ function addReview(event) {
   event.preventDefault();
 
   // Grab the values from the form fields
-  const reviewForm = document.querySelector('#review-form'),
-        userName = document.querySelector('#name').value,
+  // const reviewForm = document.querySelector('#review-form'),
+  const userName = reviewForm['name'].value,
+        // userName = document.querySelector('#name').value,
         userRating = document.querySelector('#review-radios input[type=radio]:checked').value,
-        userComment = document.querySelector('#comments').value;
+        userComment = reviewForm.comments.value;
+        // userComment = document.querySelector('#comments').value;
 
    // Construct them into a `review` object
 
   const reviewData = {
-    restaurant_id: Number(window.getParameterByName('id')),
+    restaurant_id: Number(getParameterByName('id')),
     name: userName,
     rating: Number(userRating),
     comments: userComment,
@@ -24,33 +27,17 @@ function addReview(event) {
 
   // POST the review to the server if online, which then puts in IDB
   // Otherwise, post to reviews queue if offline, then post to server when online
-  window.navigator.onLine ? postToServer(reviewData) : addReviewToQueue();
+  navigator.onLine ? postToServer(reviewData) : addReviewToQueue();
 
   // Refresh page (in a hacky sort of way) to re-populate reviews
-  window.navigator.onLine ? window.location.reload(true) : window.location.reload(false);
+  navigator.onLine ? location.reload(true) : location.reload(false);
 
   // Clear/reset the form fields
   // reviewForm.reset();
   
-  // listen for online status
-  window.addEventListener('online', () => {
-    console.log("Back online!");
-  });
 }
 
-
-// STEPS
-// 1. Check if user is online
 // 2. If offline, capture data in IDB reviewsQueue
-// Get database object
-// Open transaction on database
-// Open object store on transaction (reviewQueue)
-// Perform operation on object store...
-// reviews.forEach(review => reviewQueue.put(review))
-// 3. Notify user they are offline
-// .then(notifyUser(message))
-// pop-up/modal
-// or console.log() ?
 // 4. Post review on page (even when offline)
 // createReviewHTML()
 // 5. Else, postToServer()
@@ -58,9 +45,7 @@ function addReview(event) {
 // and then I have an event listener that listens for ‘online’
 // and runs the online handler function that tries to update reviews/favorites
 // 5. When back online, postToServer()
-// 6. Which copies reviewQueue data to IDB reviews
 // 7. Clear reviewQueue data
-// 8. Refresh page
 
 /**
  * Modal with notification for user
@@ -78,14 +63,14 @@ function addReview(event) {
  */
 
  function notifyUser() {
-   console.log('Looks like you\'re offline!');
+   console.log(`Looks like you're offline!`);
    modalMsg();
  }
 
 /**
  * Add to queue
  */
-function addReviewToQueue(data) {
+function addReviewToQueue() {
   notifyUser()
   .then(reviews => {
     DBHelper.openDb.then( db => {
@@ -99,26 +84,19 @@ function addReviewToQueue(data) {
   .then(console.log('Reviews queued!'))
   .then(createReviewHTML())
   .then(reviewStore.clear())
-  // .then(DBHelper.postNextReview());
 }
 
-/**
- * Attempt to post the pending reviews
+
+/*
+ * Post pending reviews to network (after online)
  */
-function postNextReview(cursor) {
-  if (!cursor) return;
-  postToServer(cursor.value);
-  cursor.delete();
-  return cursor.continue()
-                .then(postFromReviewQueue());
-}
-
-function postFromReviewQueue() {
+function postFromReviewQueue(reviews) {
   DBHelper.openDb.then(db => {
     const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
-    return queueStore.openCursor();
+    queueStore.getAll()
+    .then(postToServer(reviews))
+    .then(queueStore.clear())
   })
-  .then(DBHelper.postNextReview());
 }
 
 /*
@@ -137,7 +115,7 @@ function storeInIDB(serverData) {
     DBHelper.openDb.then( db => {
       const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
       reviews.forEach(
-        review => reviewStore.openCursor(review)
+        review => reviewStore.put(review)
       );
       return reviewStore.complete;
     });
@@ -166,3 +144,22 @@ function postToServer(data) {
   .then(() => storeInIDB(data))
   .catch(err => console.log(err));
 }
+
+/*
+ * Listen for submission of review form
+ */
+
+reviewForm.addEventListener('submit', addReview, false);
+
+/*
+ * Listen for online || offline status
+ */
+
+addEventListener('online', () => {
+  postFromReviewQueue()
+  console.log("Back online!")
+}, false);
+
+addEventListener('offline', () => {
+  console.log("You're offline!")
+})
