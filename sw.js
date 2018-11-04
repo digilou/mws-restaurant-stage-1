@@ -44,6 +44,7 @@ addEventListener('fetch', fetchEvent => {
             })
             .catch( error => {
               console.log(error);
+              return;
             }); // fetch catch
           }) // end match
   ) // end respondWith
