@@ -27,63 +27,43 @@ function addReview(event) {
 
   // POST the review to the server if online, which then puts in IDB
   // Otherwise, post to reviews queue if offline, then post to server when online
-  navigator.onLine ? postToServer(reviewData) : addReviewToQueue();
+  // navigator.onLine ? postToServer(reviewData) : addReviewToQueue();
+  postToServer(reviewData);
 
   // Refresh page (in a hacky sort of way) to re-populate reviews
-  navigator.onLine ? location.reload(true) : location.reload(false);
+  // navigator.onLine ? location.reload(true) : location.reload(false);
 
   // Clear/reset the form fields
   // reviewForm.reset();
   
 }
 
-// 2. If offline, capture data in IDB reviewsQueue
-// 4. Post review on page (even when offline)
+// 4. Post review on page (even when offline) & refresh page
 // createReviewHTML()
-// 5. Else, postToServer()
-// So, when I want to save a review, I do a check (if statement) to see if online.  If offline, save to offline reviews.  If online, save to server (which then updates the online reviews DB
-// and then I have an event listener that listens for ‘online’
-// and runs the online handler function that tries to update reviews/favorites
-// 5. When back online, postToServer()
+// 5. When back online, postToServer(), which SHOULD copy to IDB
 // 7. Clear reviewQueue data
-
-/**
- * Modal with notification for user
- */
-
- function modalMsg() {
-   // create a dialog
-   // Your review will be posted when you are online.
-   // a11y
- }
-
-
-/**
- * Notify user that they are offline
- */
-
- function notifyUser() {
-   console.log(`Looks like you're offline!`);
-   modalMsg();
- }
 
 /**
  * Add to queue
  */
-function addReviewToQueue() {
-  notifyUser()
-  .then(reviews => {
-    DBHelper.openDb.then( db => {
+function addReviewToQueue(reviews) {
+  DBHelper.openDb.then(db => {
       const reviewStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
-      reviews.forEach(
-        review => reviewStore.put(review)
-      );
+      // check if there is more than one review
+      if (Array.isArray(reviews)) {
+        reviews.forEach(review => {
+          reviewStore.put(review)
+          console.log('more reviews stored')
+        })
+      } else {
+        // if only one...
+        reviewStore.put(reviews)
+        console.log('one review stored')
+      }
       return reviewStore.complete;
-    });
   })
-  .then(console.log('Reviews queued!'))
-  .then(createReviewHTML())
-  .then(reviewStore.clear())
+  .then(console.log('You\'re offline. Reviews queued!'))
+  .then(createReviewHTML)
 }
 
 
@@ -93,7 +73,7 @@ function addReviewToQueue() {
 function postFromReviewQueue(reviews) {
   DBHelper.openDb.then(db => {
     const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
-    queueStore.getAll()
+    queueStore.getAll(reviews)
     .then(postToServer(reviews))
     .then(queueStore.clear())
   })
@@ -120,7 +100,7 @@ function storeInIDB(serverData) {
       return reviewStore.complete;
     });
   })
-  .then(() => console.log('Reviews updated in IDB!' + serverData))
+  .then(() => console.log('Reviews updated in IDB!'))
   .catch(err => console.log(err));
 }
 
@@ -141,8 +121,9 @@ function postToServer(data) {
   .then(response => {
     if(response.ok) return response.json()
   }) // parse response to JSON
-  .then(() => storeInIDB(data))
-  .catch(err => console.log(err));
+  .then(() => storeInIDB(data)) // copy to IDB
+  .then(location.reload(true)) // refresh page
+  .catch(addReviewToQueue(data));
 }
 
 /*
@@ -156,7 +137,7 @@ reviewForm.addEventListener('submit', addReview, false);
  */
 
 addEventListener('online', () => {
-  postFromReviewQueue()
+  // postFromReviewQueue()
   console.log("Back online!")
 }, false);
 

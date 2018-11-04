@@ -1,12 +1,11 @@
 // Fetch, install, activate cache
 
-const version = 'v4',
+const version = 'v5',
       staticCacheName = 'reviews-cache-' + version,
       filesToCache = [
         '/',
         '/index.html',
         '/restaurant.html',
-        '/offline.html',
         '/css/styles.css',
         '/img/1.jpg',
         '/img/2.jpg',
@@ -22,7 +21,8 @@ const version = 'v4',
         '/js/idb.js',
         '/js/register.js',
         '/js/main.js',
-        '/js/restaurant_info.js'
+        '/js/restaurant_info.js',
+        '/js/reviews.js'
       ];
 
 // fetch cache, with fallbacks
@@ -44,8 +44,6 @@ addEventListener('fetch', fetchEvent => {
             })
             .catch( error => {
               console.log(error);
-              // fallback page
-              return caches.match('/offline.html');
             }); // fetch catch
           }) // end match
   ) // end respondWith
