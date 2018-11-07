@@ -44,6 +44,21 @@
       <p id="restaurant-cuisine"></p>
       <p id="restaurant-address"></p>
       <table id="restaurant-hours"></table>
+      <!-- favorite this restaurant -->
+      <div id="restaurant-favorite">
+        <input type="checkbox" id="heart-toggle" class="visuallyhidden"/>
+        <label for="heart-toggle">
+          <div>Like Us?</div>
+          <svg viewBox="-10 -10 500 500" id="svg-heart" >
+            <path d="M0 200 v-200 h200
+                        a100,100 90 0,1 0,200 
+                        a100,100 90 0,1 -200,0
+                        z"/>
+            <title>Favorite</title>
+            <use xlink:href="#svg-heart" />
+          </svg>
+        </label>
+      </div>
     </section>
     <!-- end restaurant -->
     <!-- Beginning reviews -->

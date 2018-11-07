@@ -202,32 +202,9 @@ static fetchRestaurantById(id, callback) {
   }
 
   /**
-   * Open IDB
-   */
-
-  // static checkIDB(classHelper, storeName, readType) {
-  //   classHelper.openDb.then(db => {
-  //     const store = db.transaction(storeName, readType).objectStore(storeName);
-  //     store.getAll();
-  //   })
-  // }
-
-  /*
-   * Check network
-   */
-
-  // static checkNetwork(urlExt) {
-  //   return fetch(`${this.DATABASE_URL}/${urlExt}`)
-  //   .then(response => {
-  //     if(response.ok) return response.json(); // check network
-  //   })
-  //   .then(reviews => reviews) // fetch reviews from network
-  // }
-
-
-  /**
    * Fetch reviews by restaurant ID
    */
+
   static fetchReviewsByRestaurantId(restaurant_id, callback) {
     // check network for reviews endpoint
     fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${restaurant_id}`)
@@ -245,6 +222,32 @@ static fetchRestaurantById(id, callback) {
         })
       })
     });
+  }
+
+  /**
+   * Update toggle state on server
+   */
+
+  static changeToggleStateOnServer(toggle) {
+    fetch(`${this.DATABASE_URL}/restaurants/${self.restaurant.id}/?is_favorite=${toggle}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify(toggle),
+      credentials: 'same-origin',
+      mode: 'no-cors'
+    })
+    .then(response => {
+      if(response.ok) return response.json()
+    })
+    // .then( () => {
+    //   const checkbox = document.getElementById('heart-toggle');
+    //   // if network is_favorite === true, then heart is red, else light gray
+    //   if (self.restaurant.is_favorite) checkbox.checked
+    //   // location.reload(true)
+    // })
+    .catch(err => err);
   }
 
 }

@@ -289,7 +289,31 @@ nav h1 a {
   text-transform: uppercase;
 	width: 90%;
 }
+#restaurant-favorite {
+  position: absolute;
+  bottom: 1em;
+  right: 2em;
+  width: 4em;
+  height: auto;
+}
+#heart-toggle {
+  cursor: pointer;
+  background-color: white;
+  border: 0;
+  padding: 0;
+  text-align: center;
+}
+#heart-toggle div {
+  margin-bottom: -1em;
+}
+#svg-heart {
+  fill: #eee;
+  stroke: black;
+  stroke-width: 20;
+  transform: rotate(225deg);
+}
 #restaurant-container {
+  position: relative;
   border-bottom: 1px solid #d9d9d9;
   border-top: 1px solid #fff;
   padding: 40px 10px 30px;

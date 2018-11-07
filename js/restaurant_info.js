@@ -177,3 +177,18 @@ getParameterByName = (name, url) => {
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
+
+/* Favorite Toggle */
+const heart = document.getElementById('svg-heart'),
+      label = document.querySelector('label[for="heart-toggle"]'),
+      checkbox = document.getElementById('heart-toggle');
+
+function toggleFavorite() {
+  checkbox.checked ? 
+    heart.style.fill = 'red' : heart.style.fill = '#eee';
+  checkbox.checked ? 
+    DBHelper.changeToggleStateOnServer(true) : 
+    DBHelper.changeToggleStateOnServer(false);
+}
+
+heart.addEventListener('click', toggleFavorite);
