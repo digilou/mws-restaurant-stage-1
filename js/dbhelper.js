@@ -241,12 +241,10 @@ static fetchRestaurantById(id, callback) {
     .then(response => {
       if(response.ok) return response.json()
     })
-    // .then( () => {
-    //   const checkbox = document.getElementById('heart-toggle');
-    //   // if network is_favorite === true, then heart is red, else light gray
-    //   if (self.restaurant.is_favorite) checkbox.checked
-    //   // location.reload(true)
-    // })
+    .then( () => {
+      // if toggle is checkbox is checked, heart should be red
+      
+    })
     .catch(err => err);
   }
 

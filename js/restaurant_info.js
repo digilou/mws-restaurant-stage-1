@@ -191,4 +191,14 @@ function toggleFavorite() {
     DBHelper.changeToggleStateOnServer(false);
 }
 
+function checkFave() {
+  fetch(`${DBHelper.DATABASE_URL}/restaurants`)
+  .then(() => {
+    self.restaurant.is_favorite == "true" ?
+      heart.style.fill = 'red' : heart.style.fill = '#eee';
+  })
+}
+
 heart.addEventListener('click', toggleFavorite);
+
+addEventListener('load', checkFave);
