@@ -241,10 +241,6 @@ static fetchRestaurantById(id, callback) {
     .then(response => {
       if(response.ok) return response.json()
     })
-    .then( () => {
-      // if toggle is checkbox is checked, heart should be red
-      
-    })
     .catch(err => err);
   }
 
