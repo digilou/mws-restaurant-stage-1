@@ -1,18 +1,17 @@
 const reviewForm = document.forms[0];
+
 /**
- * Grab input data, put in server & IDB, post to page
+ * Grab input data, post to IDB, then post to server
 **/
+
 function addReview(event) {
   // Prevent default submission behavior
   event.preventDefault();
 
   // Grab the values from the form fields
-  // const reviewForm = document.querySelector('#review-form'),
   const userName = reviewForm['name'].value,
-        // userName = document.querySelector('#name').value,
         userRating = document.querySelector('#review-radios input[type=radio]:checked').value,
         userComment = reviewForm.comments.value;
-        // userComment = document.querySelector('#comments').value;
 
    // Construct them into a `review` object
 
@@ -25,17 +24,19 @@ function addReview(event) {
     updatedAt: Number(new Date())
   }
 
-  // POST the review to the server if online, which then puts in IDB
-  // Otherwise, post to reviews queue if offline, then post to server when online
-  postToServer(reviewData);
+  // POST the review to IDB reviewQueue store
+  addReviewToQueue(reviewData);
 
+  // Reset form
+  reviewForm.reset();
+
+  // Post reviews on page
+  fillReviewsHTML();
+
+  // Ping server to check if online yet
+  // If true, push queued Reviews to server and IDB reviews store
+  if(DBHelper.pingServer(DBHelper.REVIEWS_URL) == true) postFromReviewQueue(reviewData);
 }
-
-
-// 4. Post review on page (even when offline) & refresh page
-// createReviewHTML()
-// 7. Clear reviewQueue data
-
 
 /**
  * Add to queue
@@ -80,7 +81,7 @@ function postFromReviewQueue() {
  * Store server data into IDB
  */
 
-function storeInIDB(serverData) {
+function storeInIDB() {
   // look at server reviews
   fetch(`${DBHelper.DATABASE_URL}/reviews/?restaurant_id=${self.restaurant.id}`)
   .then(response => response.json())
@@ -125,19 +126,10 @@ function postToServer(data) {
 
 reviewForm.addEventListener('submit', addReview, false);
 
-/*
- * Listen for online || offline status
- */
 
-addEventListener('online', () => {
-  postFromReviewQueue();
-  DBHelper.openDb.then(db => {
-    const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
-    queueStore.clear()
-  });
-  console.log("Back online!");
-}, false);
-
-addEventListener('offline', () => {
-  console.log("You're offline!")
-})
+// 1) User presses Submit button on the form,
+// 2) Call `addReview()` to gather the review data,
+// 3) Call  `addReviewToQueue()` to add the review to the IDB `reviewQueue` store,
+// 4) Display ALL reviews from both the `reviews` and `reviewQueue` object stores combined in the UI (call this at page load as well as here),
+// 5) Run `pingServer()` in a `DOMContentLoaded` event listener in both `main.js` and `restaurant_info.js`, and finally,
+// 6) Based on the results of `pingServer()`, if server is online (`if isOnline`), call `postFromReviewQueue()` to push the offline reviews to the server.

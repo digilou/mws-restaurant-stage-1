@@ -12,6 +12,37 @@ class DBHelper {
   }
 
   /**
+   * Database URL for restaurants.
+   */
+  static get RESTAURANTS_URL() {
+    return `${this.DATABASE_URL}/restaurants`;
+  }
+
+  /**
+   * Database URL for reviews.
+   */
+  static get REVIEWS_URL() {
+    return `${this.DATABASE_URL}/reviews`;
+  }
+
+  /**
+   * Async function that pings appropriate server to see if online.
+   * Takes either RESTAURANTS_URL OR REVIEWS_URL as argument
+   * Adapted from code by Laura Franklin,
+   * per Nicole Freed's idea to ping the server.
+   */
+  static pingServer(server) {
+    console.log(`pingServer server: ${server}`);
+    const status = fetch(server).then(response => {
+      if (response.ok) { return true; }
+    }).catch(error => {
+      console.log('Error while pinging server: ', error);
+      return false;
+    });
+    return status;
+  }
+
+  /**
    * open cache
   **/
   static get openDb() {
@@ -47,7 +78,7 @@ class DBHelper {
    * Fetch and cache all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(`${this.DATABASE_URL}/restaurants`)
+    fetch(`${this.RESTAURANTS_URL}`)
     .then(response => response.json())
     .then(restaurants => {
       this.openDb.then( db => {
@@ -207,7 +238,7 @@ static fetchRestaurantById(id, callback) {
 
   static fetchReviewsByRestaurantId(restaurant_id, callback) {
     // check network for reviews endpoint
-    fetch(`${this.DATABASE_URL}/reviews/?restaurant_id=${restaurant_id}`)
+    fetch(`${this.REVIEWS_URL}/?restaurant_id=${restaurant_id}`)
     .then(response => {
       if (response.ok) return response.json()
       .then(reviews => {
@@ -229,7 +260,7 @@ static fetchRestaurantById(id, callback) {
    */
 
   static changeToggleStateOnServer(toggle) {
-    fetch(`${this.DATABASE_URL}/restaurants/${self.restaurant.id}/?is_favorite=${toggle}`, {
+    fetch(`${this.RESTAURANTS_URL}/${self.restaurant.id}/?is_favorite=${toggle}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',

@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
   fetchCuisines();
 });
 
+document.addEventListener('DOMContentLoaded', DBHelper.pingServer(DBHelper.RESTAURANTS_URL));
+
 /**
  * Fetch all neighborhoods and set their HTML.
  */

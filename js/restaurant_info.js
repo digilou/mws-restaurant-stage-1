@@ -202,3 +202,7 @@ function checkFave() {
 heart.addEventListener('click', toggleFavorite);
 
 addEventListener('load', checkFave);
+
+addEventListener('DOMContentLoaded', fillReviewsHTML);
+
+addEventListener('DOMContentLoaded', DBHelper.pingServer(DBHelper.REVIEWS_URL));
