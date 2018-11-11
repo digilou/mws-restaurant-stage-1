@@ -114,9 +114,13 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     return;
   }
   const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
-  });
+  if (Array.isArray(reviews)) {
+    reviews.forEach(review => {
+      ul.appendChild(createReviewHTML(review));
+    });
+  } else {
+    ul.appendChild(createReviewHTML(reviews));
+  }
   container.appendChild(ul);
 };
 
@@ -201,8 +205,9 @@ function checkFave() {
 
 heart.addEventListener('click', toggleFavorite);
 
-addEventListener('load', checkFave);
+window.addEventListener('load', checkFave, false);
 
-addEventListener('DOMContentLoaded', fillReviewsHTML);
-
-addEventListener('DOMContentLoaded', DBHelper.pingServer(DBHelper.REVIEWS_URL));
+document.addEventListener('DOMContentLoaded', 
+  DBHelper.pingServer(DBHelper.REVIEWS_URL)
+  .then(console.log("Fill reviews"))
+);

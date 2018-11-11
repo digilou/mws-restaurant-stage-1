@@ -30,13 +30,14 @@ function addReview(event) {
   // Reset form
   reviewForm.reset();
 
-  // Post reviews on page
-  fillReviewsHTML();
-
-  // Ping server to check if online yet
-  // If true, push queued Reviews to server and IDB reviews store
-  if(DBHelper.pingServer(DBHelper.REVIEWS_URL) == true) postFromReviewQueue(reviewData);
 }
+
+// Ping server to check if online yet
+  // If true, push queued Reviews to server and IDB reviews store
+  // DBHelper.pingServer(DBHelper.REVIEWS_URL)
+  // .then( () => {
+  //   if(DBHelper.pingServer(DBHelper.REVIEWS_URL)) postFromReviewQueue();
+  // })
 
 /**
  * Add to queue
@@ -57,7 +58,7 @@ function addReviewToQueue(reviews) {
       }
       return reviewStore.complete;
   })
-  .then(createReviewHTML(reviews))
+  .then(fillReviewsHTML(reviews))
   .then(console.log('You\'re offline. Reviews queued!'))
 }
 
@@ -67,13 +68,14 @@ function addReviewToQueue(reviews) {
  */
 function postFromReviewQueue() {
   DBHelper.openDb.then(db => {
-    const queueStore = db.transaction('reviewQueue', 'readonly').objectStore('reviewQueue');
-    return queueStore.getAll()
+    const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
+    queueStore.getAll()
     .then(offlineReviews => {
       offlineReviews.forEach(offlineReview => {
-        postToServer(offlineReview)
+        postToServer(offlineReview);
+        queueStore.delete(offllineReview);
       })
-    });
+    })
   })
 }
 
@@ -126,10 +128,8 @@ function postToServer(data) {
 
 reviewForm.addEventListener('submit', addReview, false);
 
+addEventListener('online', postFromReviewQueue, false);
 
-// 1) User presses Submit button on the form,
-// 2) Call `addReview()` to gather the review data,
-// 3) Call  `addReviewToQueue()` to add the review to the IDB `reviewQueue` store,
-// 4) Display ALL reviews from both the `reviews` and `reviewQueue` object stores combined in the UI (call this at page load as well as here),
-// 5) Run `pingServer()` in a `DOMContentLoaded` event listener in both `main.js` and `restaurant_info.js`, and finally,
-// 6) Based on the results of `pingServer()`, if server is online (`if isOnline`), call `postFromReviewQueue()` to push the offline reviews to the server.
+
+// 1. postFromReviewsQueue
+// 2. Offline heart toggle

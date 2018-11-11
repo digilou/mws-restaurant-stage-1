@@ -236,23 +236,56 @@ static fetchRestaurantById(id, callback) {
    * Fetch reviews by restaurant ID
    */
 
-  static fetchReviewsByRestaurantId(restaurant_id, callback) {
-    // check network for reviews endpoint
-    fetch(`${this.REVIEWS_URL}/?restaurant_id=${restaurant_id}`)
+  static fetchReviewsByRestaurantId() {
+    if(this.pingServer(this.REVIEWS_URL)) {
+      console.log("Server online.")
+      this.fetchReviewsFromServer();
+      console.log("Fetched from server.")
+    } else {
+      console.log("Server offline.")
+      this.fetchReviewsFromDB(fillReviewsHTML);
+      console.log("Fetched from cached data.")
+    }
+  }
+
+  /**
+   * Fetch reviews from server
+   */
+
+   static fetchReviewsFromServer() {
+     // check network for reviews endpoint
+    fetch(`${DBHelper.REVIEWS_URL}/?restaurant_id=${Number(getParameterByName('id'))}`)
     .then(response => {
       if (response.ok) return response.json()
-      .then(reviews => {
-        // put those reviews into IDB
-        this.openDb.then( db => {
-          const reviewsStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
-          reviews.forEach( 
-            review => reviewsStore.put(review)
-          );
-        if(reviews && reviews.length > 0) callback(null, reviews);
-        return reviewsStore.complete;
-        })
+    })
+    .then(reviews => {
+      // put those reviews into IDB
+      this.openDb.then( db => {
+        const reviewsStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
+        reviews.forEach( 
+          review => reviewsStore.put(review)
+        );
+      // if(reviews && reviews.length > 0) callback(null, reviews);
+      return reviewsStore.complete;
       })
-    });
+      .then(fillReviewsHTML(reviews))
+    })
+   }
+
+  /**
+   * Fetch reviews from server
+   */
+
+  static fetchReviewsFromDB() {
+    this.openDb.then(db => {
+      // combine 'reviews' && 'reviewQueue' stores
+      const reviewStore = db.transaction('reviews', 'readonly').objectStore('reviews'),
+            queueStore = db.transaction('reviewQueue', 'readonly').objectStore('reviewQueue'),
+      // getAll() data
+            allReviews = Promise.all(reviewStore.getAll() + queueStore.getAll());
+      // post to page
+      fillReviewsHTML(allReviews);
+    })
   }
 
   /**
