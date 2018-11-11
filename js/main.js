@@ -10,9 +10,8 @@ let restaurants,
 document.addEventListener('DOMContentLoaded', (event) => {
   fetchNeighborhoods();
   fetchCuisines();
+  DBHelper.pingServer(DBHelper.RESTAURANTS_URL);
 });
-
-document.addEventListener('DOMContentLoaded', DBHelper.pingServer(DBHelper.RESTAURANTS_URL));
 
 /**
  * Fetch all neighborhoods and set their HTML.

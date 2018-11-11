@@ -1,6 +1,13 @@
 let restaurant,
     map;
 
+const reviewForm = document.forms[0],
+      heart = document.getElementById('svg-heart');
+
+document.addEventListener('DOMContentLoaded', () => {
+  if(DBHelper.pingServer(DBHelper.REVIEWS_URL)) postFromReviewQueue
+}, false);
+
 /**
  * Initialize Google map, called from HTML.
  */
@@ -182,12 +189,141 @@ getParameterByName = (name, url) => {
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
 
-/* Favorite Toggle */
-const heart = document.getElementById('svg-heart'),
-      label = document.querySelector('label[for="heart-toggle"]'),
-      checkbox = document.getElementById('heart-toggle');
+
+/**
+ * Grab input data, post to IDB, then post to server
+**/
+
+function addReview(event) {
+  // Prevent default submission behavior
+  event.preventDefault();
+
+  // Grab the values from the form fields
+  const userName = reviewForm['name'].value,
+        userRating = document.querySelector('#review-radios input[type=radio]:checked').value,
+        userComment = reviewForm.comments.value;
+
+   // Construct them into a `review` object
+
+  const reviewData = {
+    restaurant_id: Number(getParameterByName('id')),
+    name: userName,
+    rating: Number(userRating),
+    comments: userComment,
+    createdAt: Number(new Date()),
+    updatedAt: Number(new Date())
+  }
+
+  // POST the review to IDB reviewQueue store
+  addReviewToQueue(reviewData);
+
+  // Reset form
+  reviewForm.reset();
+
+}
+
+/**
+ * Add to queue
+ */
+function addReviewToQueue(reviews) {
+  DBHelper.openDb.then(db => {
+      const reviewStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
+      // check if there is more than one review
+      if (Array.isArray(reviews)) {
+        reviews.forEach(review => {
+          reviewStore.put(review)
+          console.log('more reviews stored')
+        })
+      } else {
+        // if only one...
+        reviewStore.put(reviews)
+        console.log('one review stored')
+      }
+      return reviewStore.complete;
+  })
+  .then(fillReviewsHTML(reviews))
+  .then(console.log('You\'re offline. Reviews queued!'))
+}
+
+
+/*
+ * Post pending reviews to network (after online)
+ */
+function postFromReviewQueue() {
+  DBHelper.openDb.then(db => {
+    const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
+    queueStore.getAll()
+    .then(offlineReviews => {
+      if (Array.isArray(offlineReviews)) {
+        offlineReviews.forEach(offlineReview => {
+          postToServer(offlineReview);
+        })
+      } else {
+        postToServer(offlineReview);
+      }
+    })
+    .then(pushedReviews => {
+      queueStore.clear(pushedReviews);
+    })
+  })
+}
+
+/*
+ * Store server data into IDB
+ */
+
+function storeInIDB() {
+  // look at server reviews
+  fetch(`${DBHelper.REVIEWS_URL}/?restaurant_id=${self.restaurant.id}`)
+  .then(response => response.json())
+  .then(reviews => {
+    DBHelper.openDb.then( db => {
+      const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
+      reviews.forEach(
+        review => reviewStore.put(review)
+      );
+      return reviewStore.complete;
+    });
+  })
+  .then(() => console.log('Reviews updated in IDB!'))
+  .catch(err => console.log(err));
+}
+
+/*
+ * Put object (data values) from form onto server.
+ */
+
+function postToServer(data) {
+  return fetch(`${DBHelper.DATABASE_URL}/reviews`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    body: JSON.stringify(data),
+    credentials: 'same-origin',
+    // mode: 'no-cors'
+  })
+  .then(response => {
+    if(response.ok) return response.json()
+  }) // parse response to JSON
+  .then(() => storeInIDB(data)) // copy to IDB
+  .then(location.reload(true)) // refresh page
+  .catch(err => err);
+}
+
+/*
+ * Listen for submission of review form
+ */
+
+reviewForm.addEventListener('submit', addReview, false);
+
+
+/* 
+ * Favorite Toggle
+ */
 
 function toggleFavorite() {
+  const checkbox = document.getElementById('heart-toggle');
   checkbox.checked ? 
     heart.style.fill = 'red' : heart.style.fill = '#eee';
   checkbox.checked ? 
@@ -196,7 +332,7 @@ function toggleFavorite() {
 }
 
 function checkFave() {
-  fetch(`${DBHelper.DATABASE_URL}/restaurants`)
+  fetch(`${DBHelper.RESTAURANTS_URL}`)
   .then(() => {
     self.restaurant.is_favorite == "true" ?
       heart.style.fill = 'red' : heart.style.fill = '#eee';
@@ -205,9 +341,9 @@ function checkFave() {
 
 heart.addEventListener('click', toggleFavorite);
 
-window.addEventListener('load', checkFave, false);
+addEventListener('load', checkFave, false);
 
-document.addEventListener('DOMContentLoaded', 
-  DBHelper.pingServer(DBHelper.REVIEWS_URL)
-  .then(console.log("Fill reviews"))
-);
+// 1. Why is pingServer(status) returning false when online?
+// 2. where to get postFromReviewQuueue to work
+// 3. concatanate both IDB store arrays to post when offline
+// 4. heart toggle sometimes gives error
