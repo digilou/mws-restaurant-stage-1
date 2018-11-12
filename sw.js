@@ -1,6 +1,6 @@
 // Fetch, install, activate cache
 
-const version = 'v5',
+const version = 'v6',
       staticCacheName = 'reviews-cache-' + version,
       filesToCache = [
         '/',
@@ -21,8 +21,7 @@ const version = 'v5',
         '/js/idb.js',
         '/js/register.js',
         '/js/main.js',
-        '/js/restaurant_info.js',
-        '/js/reviews.js'
+        '/js/restaurant_info.js'
       ];
 
 // fetch cache, with fallbacks

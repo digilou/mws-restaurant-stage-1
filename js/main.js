@@ -10,6 +10,7 @@ let restaurants,
 document.addEventListener('DOMContentLoaded', (event) => {
   fetchNeighborhoods();
   fetchCuisines();
+  DBHelper.pingServer(DBHelper.REVIEWS_URL) ? DBHelper.postFromReviewQueue() : console.log('Offline')
 });
 
 /**

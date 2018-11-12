@@ -1,6 +1,13 @@
 let restaurant,
     map;
 
+const reviewForm = document.forms[0],
+      heart = document.getElementById('svg-heart');
+
+document.addEventListener('DOMContentLoaded', () => {
+  DBHelper.pingServer(DBHelper.REVIEWS_URL) ? DBHelper.postFromReviewQueue() : console.log('Offline')
+}, false);
+
 /**
  * Initialize Google map, called from HTML.
  */
@@ -114,9 +121,13 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     return;
   }
   const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
-  });
+  if (Array.isArray(reviews)) {
+    reviews.forEach(review => {
+      ul.appendChild(createReviewHTML(review));
+    });
+  } else {
+    ul.appendChild(createReviewHTML(reviews));
+  }
   container.appendChild(ul);
 };
 
@@ -178,12 +189,52 @@ getParameterByName = (name, url) => {
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
 
-/* Favorite Toggle */
-const heart = document.getElementById('svg-heart'),
-      label = document.querySelector('label[for="heart-toggle"]'),
-      checkbox = document.getElementById('heart-toggle');
+
+/**
+ * Grab input data, post to IDB, then post to server
+**/
+
+function addReview(event) {
+  // Prevent default submission behavior
+  event.preventDefault();
+
+  // Grab the values from the form fields
+  const userName = reviewForm['name'].value,
+        userRating = document.querySelector('#review-radios input[type=radio]:checked').value,
+        userComment = reviewForm.comments.value;
+
+   // Construct them into a `review` object
+
+  const reviewData = {
+    restaurant_id: Number(getParameterByName('id')),
+    name: userName,
+    rating: Number(userRating),
+    comments: userComment,
+    createdAt: Number(new Date()),
+    updatedAt: Number(new Date())
+  }
+
+  // POST the review to IDB reviewQueue store
+  DBHelper.addReviewToQueue(reviewData);
+
+  // Reset form
+  reviewForm.reset();
+
+}
+
+/*
+ * Listen for submission of review form
+ */
+
+reviewForm.addEventListener('submit', addReview, false);
+
+
+/* 
+ * Favorite Toggle
+ */
 
 function toggleFavorite() {
+  const checkbox = document.getElementById('heart-toggle');
   checkbox.checked ? 
     heart.style.fill = 'red' : heart.style.fill = '#eee';
   checkbox.checked ? 
@@ -192,7 +243,7 @@ function toggleFavorite() {
 }
 
 function checkFave() {
-  fetch(`${DBHelper.DATABASE_URL}/restaurants`)
+  fetch(`${DBHelper.RESTAURANTS_URL}`)
   .then(() => {
     self.restaurant.is_favorite == "true" ?
       heart.style.fill = 'red' : heart.style.fill = '#eee';
@@ -201,4 +252,4 @@ function checkFave() {
 
 heart.addEventListener('click', toggleFavorite);
 
-addEventListener('load', checkFave);
+addEventListener('load', checkFave, false);
