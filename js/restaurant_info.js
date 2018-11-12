@@ -5,7 +5,7 @@ const reviewForm = document.forms[0],
       heart = document.getElementById('svg-heart');
 
 document.addEventListener('DOMContentLoaded', () => {
-  if(DBHelper.pingServer(DBHelper.REVIEWS_URL)) postFromReviewQueue
+  DBHelper.pingServer(DBHelper.REVIEWS_URL) ? DBHelper.postFromReviewQueue() : console.log('Offline')
 }, false);
 
 /**
@@ -215,100 +215,11 @@ function addReview(event) {
   }
 
   // POST the review to IDB reviewQueue store
-  addReviewToQueue(reviewData);
+  DBHelper.addReviewToQueue(reviewData);
 
   // Reset form
   reviewForm.reset();
 
-}
-
-/**
- * Add to queue
- */
-function addReviewToQueue(reviews) {
-  DBHelper.openDb.then(db => {
-      const reviewStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
-      // check if there is more than one review
-      if (Array.isArray(reviews)) {
-        reviews.forEach(review => {
-          reviewStore.put(review)
-          console.log('more reviews stored')
-        })
-      } else {
-        // if only one...
-        reviewStore.put(reviews)
-        console.log('one review stored')
-      }
-      return reviewStore.complete;
-  })
-  .then(fillReviewsHTML(reviews))
-  .then(console.log('You\'re offline. Reviews queued!'))
-}
-
-
-/*
- * Post pending reviews to network (after online)
- */
-function postFromReviewQueue() {
-  DBHelper.openDb.then(db => {
-    const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
-    queueStore.getAll()
-    .then(offlineReviews => {
-      if (Array.isArray(offlineReviews)) {
-        offlineReviews.forEach(offlineReview => {
-          postToServer(offlineReview);
-        })
-      } else {
-        postToServer(offlineReview);
-      }
-    })
-    .then(pushedReviews => {
-      queueStore.clear(pushedReviews);
-    })
-  })
-}
-
-/*
- * Store server data into IDB
- */
-
-function storeInIDB() {
-  // look at server reviews
-  fetch(`${DBHelper.REVIEWS_URL}/?restaurant_id=${self.restaurant.id}`)
-  .then(response => response.json())
-  .then(reviews => {
-    DBHelper.openDb.then( db => {
-      const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
-      reviews.forEach(
-        review => reviewStore.put(review)
-      );
-      return reviewStore.complete;
-    });
-  })
-  .then(() => console.log('Reviews updated in IDB!'))
-  .catch(err => console.log(err));
-}
-
-/*
- * Put object (data values) from form onto server.
- */
-
-function postToServer(data) {
-  return fetch(`${DBHelper.DATABASE_URL}/reviews`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-    body: JSON.stringify(data),
-    credentials: 'same-origin',
-    // mode: 'no-cors'
-  })
-  .then(response => {
-    if(response.ok) return response.json()
-  }) // parse response to JSON
-  .then(() => storeInIDB(data)) // copy to IDB
-  .then(location.reload(true)) // refresh page
-  .catch(err => err);
 }
 
 /*
@@ -342,8 +253,3 @@ function checkFave() {
 heart.addEventListener('click', toggleFavorite);
 
 addEventListener('load', checkFave, false);
-
-// 1. Why is pingServer(status) returning false when online?
-// 2. where to get postFromReviewQuueue to work
-// 3. concatanate both IDB store arrays to post when offline
-// 4. heart toggle sometimes gives error

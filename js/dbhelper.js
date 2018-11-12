@@ -276,16 +276,110 @@ static fetchRestaurantById(id, callback) {
    * Fetch reviews from server
    */
 
-  static fetchReviewsFromDB() {
+  static fetchReviewsFromDB(reviews) {
     this.openDb.then(db => {
       // combine 'reviews' && 'reviewQueue' stores
       const reviewStore = db.transaction('reviews', 'readonly').objectStore('reviews'),
             queueStore = db.transaction('reviewQueue', 'readonly').objectStore('reviewQueue'),
-      // getAll() data
             allReviews = Promise.all(reviewStore.getAll() + queueStore.getAll());
-      // post to page
-      fillReviewsHTML(allReviews);
+
+      if(reviews && reviews.length > 0) {
+        reviewsStore.getAll()
+        .then( review => {
+          fillReviewsHTML(review)
+        })
+      }
+      return reviewStore.complete;
     })
+  }
+
+  /**
+   * Add to queue
+   */
+  static addReviewToQueue(reviews) {
+    this.openDb.then(db => {
+        const reviewStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
+        // check if there is more than one review
+        if (Array.isArray(reviews)) {
+          reviews.forEach(review => {
+            reviewStore.put(review)
+            console.log('more reviews stored')
+          })
+        } else {
+          // if only one...
+          reviewStore.put(reviews)
+          console.log('one review stored')
+        }
+        return reviewStore.complete;
+    })
+    .then(fillReviewsHTML(reviews))
+    .then(console.log('You\'re offline. Reviews queued!'))
+  }
+
+
+  /*
+  * Post pending reviews to network (after online)
+  */
+  static postFromReviewQueue() {
+    this.openDb.then(db => {
+      const queueStore = db.transaction('reviewQueue', 'readwrite').objectStore('reviewQueue');
+      queueStore.getAll()
+      .then(offlineReviews => {
+        if (Array.isArray(offlineReviews)) {
+          offlineReviews.forEach(offlineReview => {
+            this.postToServer(offlineReview);
+          })
+        } else {
+          this.postToServer(offlineReview);
+        }
+      })
+      .then(pushedReviews => {
+        queueStore.clear(pushedReviews);
+      })
+    })
+  }
+
+  /*
+  * Store server data into IDB
+  */
+
+  static storeInIDB() {
+    // look at server reviews
+    fetch(`${this.REVIEWS_URL}/?restaurant_id=${getParameterByName('id')}`)
+    .then(response => response.json())
+    .then(reviews => {
+      this.openDb.then( db => {
+        const reviewStore = db.transaction('reviews', 'readwrite').objectStore('reviews');
+        reviews.forEach(
+          review => reviewStore.put(review)
+        );
+        return reviewStore.complete;
+      });
+    })
+    .then(() => console.log('Reviews updated in IDB!'))
+    .catch(err => console.log(err));
+  }
+
+  /*
+  * Put object (data values) from form onto server.
+  */
+
+  static postToServer(data) {
+    return fetch(this.REVIEWS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify(data),
+      credentials: 'same-origin',
+      // mode: 'no-cors'
+    })
+    .then(response => {
+      if(response.ok) return response.json()
+    }) // parse response to JSON
+    .then(this.storeInIDB(data)) // copy to IDB reviews store
+    .then(location.reload(true)) // refresh page
+    .catch(err => err);
   }
 
   /**
@@ -293,7 +387,7 @@ static fetchRestaurantById(id, callback) {
    */
 
   static changeToggleStateOnServer(toggle) {
-    fetch(`${this.RESTAURANTS_URL}/${self.restaurant.id}/?is_favorite=${toggle}`, {
+    fetch(`${this.RESTAURANTS_URL}/${getParameterByName('id')}/?is_favorite=${toggle}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
