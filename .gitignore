@@ -41,7 +41,7 @@ jspm_packages
 
 # Task and local dev files
 sass
-./gulpfile.js
+gulpfile.js
 
 # Notes
 *.txt

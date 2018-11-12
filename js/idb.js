@@ -1,6 +1,6 @@
-'use strict';
-
 (function() {
+  'use strict';
+  
   function toArray(arr) {
     return Array.prototype.slice.call(arr);
   }
